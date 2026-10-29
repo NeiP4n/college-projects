@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
+  <ribbon>
+    <tabs>
+      <tab id="tabOllama" label="Ollama AI">
+
+        <group id="grpModel" label="AI Model">
+          <comboBox id="cboModel"
+                    label="Model:"
+                    showLabel="true"
+                    sizeString="llama3.2 (2.0 GB)_______"
+                    onChange="OnModelChange"
+                    getItemCount="GetModelCount"
+                    getItemLabel="GetModelLabel"
+                    getText="GetModelText"/>
+          <button id="btnRefresh"  label="Refresh"   imageMso="Refresh"       size="normal" onAction="OnRefreshModels"/>
+          <button id="btnSettings" label="Settings"  imageMso="OptionsDialog" size="normal" onAction="OnOpenSettings"/>
+          <labelControl id="lblStatus" getLabel="GetStatusLabel"/>
+        </group>
+
+        <group id="grpText" label="Text">
+          <button id="btnImprove"   label="Improve"      imageMso="SpellingAndGrammar" size="large"  onAction="OnImproveText"/>
+          <button id="btnTranslate" label="Translate"    imageMso="TranslateDocument"  size="large"  onAction="OnTranslateText"/>
+          <button id="btnSummarize" label="Summarize"    imageMso="ReviewPane"         size="large"  onAction="OnSummarizeText"/>
+          <separator id="sep1"/>
+          <button id="btnExpand"    label="Expand"       imageMso="FieldNext"          size="normal" onAction="OnExpandText"/>
+          <button id="btnShorten"   label="Shorten"      imageMso="FieldPrevious"      size="normal" onAction="OnShortenText"/>
+          <button id="btnGrammar"   label="Fix Grammar"  imageMso="AcceptAllChanges"   size="normal" onAction="OnFixGrammar"/>
+          <button id="btnTone"      label="Change Tone"  imageMso="StylesPane"         size="normal" onAction="OnChangeTone"/>
+        </group>
+
+        <group id="grpGenerate" label="Generate">
+          <button id="btnContinue" label="Continue Text" imageMso="AutoTextInsert"   size="large"  onAction="OnContinueText"/>
+          <button id="btnPrompt"   label="From Prompt"   imageMso="CreateList"       size="large"  onAction="OnGenerateFromPrompt"/>
+          <separator id="sep2"/>
+          <button id="btnTable"    label="Table"         imageMso="TableInsert"      size="normal" onAction="OnGenerateTable"/>
+          <button id="btnList"     label="List"          imageMso="ListBullets"      size="normal" onAction="OnGenerateList"/>
+          <button id="btnHeadings" label="Headings"      imageMso="OutlineViewClose" size="normal" onAction="OnGenerateHeadings"/>
+        </group>
+
+        <group id="grpAnalyze" label="Analyze">
+          <button id="btnAnalyze"   label="Analyze Doc"  imageMso="TableStylesGallery"  size="large"  onAction="OnAnalyzeDocument"/>
+          <button id="btnKeyPoints" label="Key Points"   imageMso="OutlineMoveUp"       size="large"  onAction="OnExtractKeyPoints"/>
+          <separator id="sep3"/>
+          <button id="btnErrors"    label="Find Errors"  imageMso="ReviewTrackChanges"  size="normal" onAction="OnFindErrors"/>
+          <button id="btnStats"     label="Statistics"   imageMso="WordCount"           size="normal" onAction="OnDocStats"/>
+        </group>
+
+        <group id="grpChat" label="Chat">
+          <toggleButton id="btnChat"   label="Open Chat"     imageMso="Chat"                    size="large"  onAction="OnToggleChat"  getPressed="GetChatPressed"/>
+          <button       id="btnAskDoc" label="Ask About Doc" imageMso="GroupMailingAndTracking"  size="normal" onAction="OnAskAboutDoc"/>
+        </group>
+
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

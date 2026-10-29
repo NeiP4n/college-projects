@@ -1,0 +1,131 @@
+﻿@page "/Tours"
+@using TourAgencyApp.Data
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Туры</PageTitle>
+
+<h3>Список туров</h3>
+
+<div>
+    <input @bind="searchTerm" placeholder="Поиск по названию или направлению" />
+    <button @onclick="SearchTours">Поиск</button>
+    <button @onclick="() => ShowAddTourForm = true">Добавить тур</button>
+</div>
+
+@if (ShowAddTourForm)
+{
+    <EditForm Model="newTour" OnValidSubmit="AddTour">
+        <div>
+            <label>Название:</label>
+            <InputText @bind-Value="newTour.Название" placeholder="Введите название" />
+        </div>
+        <div>
+            <label>Направление:</label>
+            <InputText @bind-Value="newTour.Направление" placeholder="Введите направление" />
+        </div>
+        <div>
+            <label>Дата начала:</label>
+            <InputDate @bind-Value="newTour.Дата_начала" />
+        </div>
+        <div>
+            <label>Дата окончания:</label>
+            <InputDate @bind-Value="newTour.Дата_окончания" />
+        </div>
+        <div>
+            <label>Цена:</label>
+            <InputNumber @bind-Value="newTour.Цена" placeholder="Введите цену" />
+        </div>
+        <div>
+            <label>Описание:</label>
+            <InputTextArea @bind-Value="newTour.Описание" placeholder="Введите описание" />
+        </div>
+        <div>
+            <label>Доступные места:</label>
+            <InputNumber @bind-Value="newTour.Доступные_места" placeholder="Введите количество мест" />
+        </div>
+        <button type="submit">Сохранить</button>
+        <button @onclick="() => ShowAddTourForm = false">Отмена</button>
+    </EditForm>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Направление</th>
+            <th>Дата начала</th>
+            <th>Дата окончания</th>
+            <th>Цена</th>
+            <th>Места</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tour in filteredTours)
+        {
+            <tr>
+                <td>@tour.Название</td>
+                <td>@tour.Направление</td>
+                <td>@tour.Дата_начала.ToShortDateString()</td>
+                <td>@tour.Дата_окончания.ToShortDateString()</td>
+                <td>@tour.Цена</td>
+                <td>@tour.Доступные_места</td>
+                <td>
+                    <button @onclick="() => DeleteTour(tour.Идентификатор)">Удалить</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Тур> tours = new();
+    private List<Тур> filteredTours = new();
+    private Тур newTour = new();
+    private string searchTerm = "";
+    private bool ShowAddTourForm = false;
+
+    // Загрузка данных при инициализации страницы
+    protected override async Task OnInitializedAsync()
+    {
+        tours = await DbContext.Туры.ToListAsync();
+        filteredTours = tours;
+    }
+
+    // Поиск туров по названию или направлению
+    private void SearchTours()
+    {
+        filteredTours = tours.Where(t => t.Название.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                         t.Направление.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    // Добавление нового тура
+    private async Task AddTour()
+    {
+        // Простая валидация
+        if (string.IsNullOrEmpty(newTour.Название) || newTour.Цена < 0 || newTour.Доступные_места < 0)
+        {
+            return; // Можно добавить сообщение об ошибке
+        }
+
+        DbContext.Туры.Add(newTour);
+        await DbContext.SaveChangesAsync();
+        tours = await DbContext.Туры.ToListAsync();
+        filteredTours = tours;
+        newTour = new(); // Очистка формы
+        ShowAddTourForm = false;
+    }
+
+    // Удаление тура
+    private async Task DeleteTour(int id)
+    {
+        var tour = await DbContext.Туры.FindAsync(id);
+        if (tour != null)
+        {
+            DbContext.Туры.Remove(tour);
+            await DbContext.SaveChangesAsync();
+            tours = await DbContext.Туры.ToListAsync();
+            filteredTours = tours;
+        }
+    }
+}

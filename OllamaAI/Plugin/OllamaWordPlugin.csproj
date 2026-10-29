@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net48</TargetFramework>
+		<AssemblyName>OllamaWordPlugin</AssemblyName>
+		<RootNamespace>OllamaWordPlugin</RootNamespace>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<ItemGroup>
+
+		<Reference Include="Microsoft.Office.Interop.Word">
+			<HintPath>lib\Microsoft.Office.Interop.Word.dll</HintPath>
+		</Reference>
+
+		<Reference Include="office">
+			<HintPath>lib\office.dll</HintPath>
+		</Reference>
+
+		<Reference Include="Extensibility">
+			<HintPath>lib\extensibility.dll</HintPath>
+		</Reference>
+
+		<Reference Include="System.Net.Http" />
+
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="src\RibbonUI.xml"
+						  LogicalName="OllamaWordPlugin.RibbonUI.xml"/>
+	</ItemGroup>
+
+</Project>
