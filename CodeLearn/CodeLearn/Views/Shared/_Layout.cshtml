@@ -1,0 +1,163 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken">
+    <title>@ViewData["Title"] - CodeLearn</title>
+
+    <!-- Press Start 2P — пиксельный шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base/Globals.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/base/pixel.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/base.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/layout.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/map.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/levels.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/ui.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/responsive.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/animations.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/effects.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/flowy.css" asp-append-version="true">
+</head>
+<body>
+
+    <!-- CRT-наложение -->
+    <div class="crt-scanlines"></div>
+    <div class="crt-overlay"></div>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <!-- Flowy-плеер (живёт на всех страницах, музыка не прерывается) -->
+        <div class="flowy" id="flowy">
+            <!-- Строка 1: логотип (drag) + поле ссылки + загрузить + свернуть -->
+            <div class="flowy-row">
+                <div class="flowy-logo" id="flowyIcon" title="перетащи за иконку · клик в свёрнутом — развернуть">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="8" y="1" width="2" height="7"/><rect x="3" y="2" width="2" height="6"/><rect x="3" y="7" width="3" height="3"/><rect x="8" y="6" width="3" height="3"/></svg>
+                </div>
+                <input class="flowy-vibe" id="flowyVibe" maxlength="300"
+                       placeholder="вставь ссылку: YouTube · Spotify · SoundCloud" autocomplete="off" spellcheck="false">
+                <button class="flowy-btn" id="flowySearch" title="загрузить ссылку">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="2" y="1" width="5" height="1"/><rect x="2" y="6" width="5" height="1"/><rect x="1" y="2" width="1" height="4"/><rect x="7" y="2" width="1" height="4"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/><rect x="10" y="9" width="2" height="2"/></svg>
+                </button>
+                <button class="flowy-btn" id="flowyCollapse" title="свернуть / развернуть">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="3" y="6" width="2" height="2"/><rect x="5" y="4" width="2" height="2"/><rect x="7" y="6" width="2" height="2"/></svg>
+                </button>
+            </div>
+            <!-- Строка 2: управление (для YouTube) -->
+            <div class="flowy-row flowy-controls">
+                <button class="flowy-btn" id="flowyPrev" title="предыдущая / сначала">
+                    <svg viewBox="0 0 14 12" shape-rendering="crispEdges"><rect x="2" y="2" width="2" height="8"/><rect x="8" y="4" width="2" height="4"/><rect x="6" y="3" width="2" height="6"/><rect x="10" y="2" width="2" height="8"/></svg>
+                </button>
+                <button class="flowy-btn" id="flowyPlay" title="играть / пауза">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="3" y="2" width="2" height="8"/><rect x="5" y="3" width="2" height="6"/><rect x="7" y="4" width="2" height="4"/></svg>
+                </button>
+                <button class="flowy-btn" id="flowyNext" title="следующая">
+                    <svg viewBox="0 0 14 12" shape-rendering="crispEdges"><rect x="2" y="2" width="2" height="8"/><rect x="4" y="3" width="2" height="6"/><rect x="6" y="4" width="2" height="4"/><rect x="10" y="2" width="2" height="8"/></svg>
+                </button>
+                <button class="flowy-btn" id="flowyVolDown" title="тише">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="2" y="5" width="8" height="2"/></svg>
+                </button>
+                <span class="flowy-vol" id="flowyVol">50%</span>
+                <button class="flowy-btn" id="flowyVolUp" title="громче">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="2" y="5" width="8" height="2"/><rect x="5" y="2" width="2" height="8"/></svg>
+                </button>
+                <button class="flowy-btn" id="flowyDl" title="скачать .mp3 / открыть трек">
+                    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><rect x="5" y="1" width="2" height="5"/><rect x="3" y="4" width="2" height="2"/><rect x="7" y="4" width="2" height="2"/><rect x="4" y="6" width="4" height="1"/><rect x="2" y="9" width="8" height="2"/></svg>
+                </button>
+            </div>
+            <div class="flowy-bar" id="flowyBar" title="перемотка">
+                <div class="flowy-bar-fill" id="flowyBarFill"></div>
+            </div>
+            <div class="flowy-meta">
+                <span class="flowy-now" id="flowyNow"></span>
+                <span class="flowy-time" id="flowyTime"></span>
+            </div>
+            <!-- Видео-окошко: YouTube видно; SoundCloud/Spotify — встроенный плеер.
+                 Тяни за правый-нижний угол, чтобы увеличить / уменьшить. -->
+            <div class="flowy-screen" id="flowyScreen" title="тяни угол — изменить размер">
+                <div class="flowy-embed" id="flowyEmbed"></div>
+                <div class="flowy-yt"><div id="flowyYT"></div></div>
+            </div>
+        </div>
+    }
+
+    @if (IsSectionDefined("FullPage"))
+    {
+        @RenderSection("FullPage", required: false)
+    }
+    else
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CodeLearn</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="border-top footer text-muted">
+            <div class="container">
+                &copy; 2026 - CodeLearn - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
+        </footer>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script src="~/js/main/flowy-player.js" asp-append-version="true"></script>
+    }
+    <script>
+    // Глобальный CSRF-токен для fetch-запросов
+    window.__csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    window.csrfFetch = function(url, opts) {
+        opts = opts || {};
+        opts.headers = Object.assign({ 'RequestVerificationToken': window.__csrfToken }, opts.headers || {});
+        return fetch(url, opts);
+    };
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Пиксельный след курсора -->
+    <script>
+    (function () {
+        window.addEventListener('mousemove', function (e) {
+            var el = document.createElement('div');
+            el.className = 'cursor-star';
+            el.style.left = (Math.round(e.clientX / 2) * 2) + 'px';
+            el.style.top  = (Math.round(e.clientY / 2) * 2) + 'px';
+            document.body.appendChild(el);
+            setTimeout(function () { el.remove(); }, 600);
+        });
+    })();
+    </script>
+
+</body>
+</html>

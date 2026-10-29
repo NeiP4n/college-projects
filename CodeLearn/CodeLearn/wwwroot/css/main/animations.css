@@ -1,0 +1,30 @@
+﻿/* =====================================================
+   HOVER — интерактивные элементы
+===================================================== */
+
+.btn-home,
+.btn-profile,
+.level {
+    transition: transform 0.18s ease;
+    cursor: pointer;
+}
+
+.btn-home:hover,
+.btn-profile:hover {
+    transform: scale(1.12);
+    filter: brightness(1.3) drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+}
+
+.level img,
+.level span {
+    transition: filter 0.18s ease;
+}
+
+.level:hover {
+    transform: scale(1.08);
+}
+
+.level:hover img,
+.level:hover span {
+    filter: brightness(1.5) drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+}

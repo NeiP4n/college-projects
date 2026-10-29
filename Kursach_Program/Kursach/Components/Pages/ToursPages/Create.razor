@@ -1,0 +1,73 @@
+﻿@page "/tours/create"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Создать</PageTitle>
+
+<h1>Создать</h1>
+
+<h2>Туры</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Method="POST" Model="Tours" OnValidSubmit="AddToursHandler" FormName="createTourForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Название:</label>
+                <InputText id="name" @bind-Value="Tours.Name" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Tours.Name" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="destination" class="form-label">Направление:</label>
+                <InputText id="destination" @bind-Value="Tours.Destination" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Tours.Destination" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="startdate" class="form-label">Дата начала:</label>
+                <InputDate id="startdate" @bind-Value="Tours.StartDate" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Tours.StartDate" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="enddate" class="form-label">Дата окончания:</label>
+                <InputDate id="enddate" @bind-Value="Tours.EndDate" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Tours.EndDate" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">Цена:</label>
+                <InputNumber id="price" @bind-Value="Tours.Price" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Tours.Price" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание:</label>
+                <InputText id="description" @bind-Value="Tours.Description" class="form-control" />
+                <ValidationMessage For="() => Tours.Description" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="avalableseats" class="form-label">Доступные места:</label>
+                <InputNumber id="avalableseats" @bind-Value="Tours.AvailableSeats" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Tours.AvailableSeats" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Создать</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/tours">Назад к списку</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Tours Tours { get; set; } = new();
+
+    private async Task AddToursHandler()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Tours.Add(Tours);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/tours");
+    }
+}

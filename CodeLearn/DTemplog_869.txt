@@ -1,0 +1,99 @@
+
+=== Lesson 962: Синхронность vs асинхронность ===
+  [200] text
+  [200] two_path
+  [200] code
+  [200] quiz
+  [200] prediction
+  [200] knowledge_check
+
+=== Lesson 963: Task и Task<T> ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] mini_task
+  [200] prediction
+  [200] fix_bug
+
+=== Lesson 964: async / await основы ===
+  [200] text
+  [200] code
+  [200] fix_bug
+  [200] fill_blank
+  [200] quiz
+  [200] knowledge_check
+
+=== Lesson 965: ConfigureAwait и контекст синхронизации ===
+  [200] text
+  [200] semantic_diff
+  [200] code
+  [200] quiz
+  [200] transfer_test
+  [200] knowledge_check
+
+=== Lesson 966: Task.WhenAll и Task.WhenAny ===
+  [200] text
+  [200] mutation
+  [200] code
+  [200] quiz
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 967: CancellationToken ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] fix_bug
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 968: Deadlocks и best practices ===
+  [200] text
+  [200] semantic_diff
+  [200] fix_bug
+  [200] checkpoint
+  [200] quiz
+  [200] transfer_test
+
+=== Lesson 969: NuGet и управление зависимостями ===
+  [200] text
+  [200] quiz
+  [200] code
+  [200] knowledge_check
+  [200] drag_order
+  [200] transfer_test
+
+=== Lesson 970: Конфигурация и appsettings.json ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] fill_blank
+  [200] knowledge_check
+  [200] transfer_test
+
+=== Lesson 971: Логирование: ILogger и Serilog ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] code_to_intent
+  [200] fill_blank
+  [200] knowledge_check
+
+=== Lesson 972: Dependency Injection ===
+  [200] text
+  [200] code_to_intent
+  [200] code
+  [200] mini_task
+  [200] quiz
+  [200] knowledge_check
+
+=== Lesson 973: Unit-тестирование с xUnit ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] quiz
+  [200] fix_bug
+  [200] checkpoint
+  [200] knowledge_check
+
+=== Все блоки добавлены! ===

@@ -1,0 +1,120 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using Kursach.Data
+@using Kursach.Models
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@implements IAsyncDisposable
+@inject IDbContextFactory<KursachContext> DbFactory
+
+<PageTitle>Главная</PageTitle>
+
+<h3>Туры и Клиенты</h3>
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+    }
+
+    <h4>Список туров</h4>
+    @if (tours.Any())
+    {
+        <ul>
+            @foreach (var tour in tours)
+            {
+                <li>@tour.Name - @tour.Price (ID: @tour.Id)</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Warning">Туры не найдены.</MudAlert>
+    }
+
+    <h4>Список клиентов</h4>
+    @if (clients.Any())
+    {
+        <ul>
+            @foreach (var client in clients.OrderBy(c => c.Id))
+            {
+                <li>@client.FirstName @client.LastName (ID: @client.Id)</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Warning">Клиенты не найдены.</MudAlert>
+    }
+
+    <h4>Общая сумма подтвержденных туров</h4>
+    @if (confirmedToursSum > 0)
+    {
+        <p>Общая сумма подтвержденных туров: @confirmedToursSum руб.</p>
+    }
+    else
+    {
+        <p>Нет подтвержденных туров.</p>
+    }
+
+    <h4>Общая сумма всех туров</h4>
+    @if (totalToursSum > 0)
+    {
+        <p>Общая сумма всех туров: @totalToursSum руб.</p>
+    }
+    else
+    {
+        <p>Нет туров.</p>
+    }
+}
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<Tours> tours = new();
+    private List<Clients> clients = new();
+    private decimal confirmedToursSum = 0;
+    private decimal totalToursSum = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            // Загружаем данные для туров
+            tours = await context.Tours
+                                 .Include(t => t.Bookings) // Явно загружаем связанные бронирования
+                                 .ToListAsync();
+
+            // Загружаем данные для клиентов после того, как туры будут загружены
+            clients = await context.Clients.ToListAsync();
+
+            // Рассчитываем общую сумму подтвержденных туров
+            confirmedToursSum = tours
+                .Where(t => t.Bookings.Any(b => b.Status == "Подтвержден")) // Отбираем туры с подтвержденными бронированиями
+                .Sum(t => t.Price); // Суммируем цены этих туров
+
+            // Рассчитываем общую сумму всех туров
+            totalToursSum = tours.Sum(t => t.Price); // Суммируем цены всех туров
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Произошла ошибка: {ex.Message}\n{ex.StackTrace}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+}

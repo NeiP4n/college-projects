@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabaBond1", "LabaBond1\LabaBond1.csproj", "{6351C6BE-5114-4134-A0B7-E446B0E80320}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NpgPr", "NpgPr\NpgPr.csproj", "{269E4639-2EEF-4109-BE4F-BED5065E8144}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BdManga", "BdManga\BdManga.csproj", "{ED3BDD1B-73F2-49C0-A41E-04FBD470EEC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6351C6BE-5114-4134-A0B7-E446B0E80320}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6351C6BE-5114-4134-A0B7-E446B0E80320}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6351C6BE-5114-4134-A0B7-E446B0E80320}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6351C6BE-5114-4134-A0B7-E446B0E80320}.Release|Any CPU.Build.0 = Release|Any CPU
+		{269E4639-2EEF-4109-BE4F-BED5065E8144}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{269E4639-2EEF-4109-BE4F-BED5065E8144}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{269E4639-2EEF-4109-BE4F-BED5065E8144}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{269E4639-2EEF-4109-BE4F-BED5065E8144}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED3BDD1B-73F2-49C0-A41E-04FBD470EEC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED3BDD1B-73F2-49C0-A41E-04FBD470EEC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED3BDD1B-73F2-49C0-A41E-04FBD470EEC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED3BDD1B-73F2-49C0-A41E-04FBD470EEC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

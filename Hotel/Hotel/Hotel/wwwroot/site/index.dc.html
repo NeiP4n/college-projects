@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing: border-box; }
+  body{ margin: 0; background: #FBF7EF; }
+</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="home" hint-size="100%,86px"></dc-import>
+
+  <!-- HERO -->
+  <section style="position: relative; min-height: 88vh; display: flex; align-items: flex-end; background: linear-gradient(180deg, rgba(12,59,69,0.15) 0%, rgba(12,59,69,0.55) 100%), linear-gradient(120deg, #0C3B45, #2E96A8); background-size: cover; background-position: center; overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,59,69,0.10) 0%, rgba(12,59,69,0.30) 55%, rgba(12,59,69,0.72) 100%); z-index: 1;"></div>
+
+    <div style="position: relative; z-index: 2; width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 64px) clamp(40px, 6vw, 76px); display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap;">
+      <div style="max-width: 640px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #BFE0E5; margin-bottom: 22px;">Тихая лагуна · Тёплый песок</div>
+        <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(48px, 7vw, 92px); line-height: 0.98; color: #FBF7EF; margin: 0; letter-spacing: -0.5px;">Море начинается<br><em style="font-style: italic; color: #EBD6A8;">за вашим окном</em></h1>
+        <p style="font-size: 17px; line-height: 1.7; color: #E4EEEF; max-width: 480px; margin: 24px 0 0;">Двенадцать номеров на берегу, где время замедляется. Бутик-отель «Лагуна» — для тех, кто ищет тишину, свет и солёный воздух.</p>
+      </div>
+
+      <!-- Booking widget -->
+      <div style="background: rgba(251, 247, 239, 0.96); backdrop-filter: blur(8px); border-radius: 20px; padding: 26px; width: 340px; box-shadow: 0 30px 70px rgba(12,59,69,0.4);">
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin-bottom: 18px;">Проверить даты</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <label style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #6E97A0;">Заезд</span><input type="date" style="border: 1px solid #D7C7AD; border-radius: 10px; padding: 11px 12px; font-family: inherit; font-size: 14px; color: #15292E; background: #fff;"></label>
+          <label style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #6E97A0;">Выезд</span><input type="date" style="border: 1px solid #D7C7AD; border-radius: 10px; padding: 11px 12px; font-family: inherit; font-size: 14px; color: #15292E; background: #fff;"></label>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #6E97A0;">Гости</span>
+          <select style="border: 1px solid #D7C7AD; border-radius: 10px; padding: 11px 12px; font-family: inherit; font-size: 14px; color: #15292E; background: #fff;"><option>2 гостя</option><option>1 гость</option><option>3 гостя</option><option>4 гостя</option></select>
+        </label>
+        <a href="contacts.dc.html" style="display: flex; align-items: center; justify-content: center; padding: 14px; border-radius: 10px; background: #145A6B; color: #FBF7EF; font-size: 14.5px; font-weight: 600; text-decoration: none;" style-hover="background: #0C3B45;">Найти номер</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section style="max-width: 1000px; margin: 0 auto; padding: clamp(70px, 10vw, 130px) clamp(20px, 5vw, 64px); text-align: center;">
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-bottom: 22px;">Добро пожаловать</div>
+    <p style="font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 44px); line-height: 1.32; font-weight: 400; color: #0C3B45; margin: 0;">Мы построили «Лагуну» вокруг одной идеи — чтобы между вами и морем не стояло ничего лишнего. Натуральные материалы, мягкий свет и завтраки под шум прибоя.</p>
+  </section>
+
+  <!-- STATS STRIP -->
+  <section style="background: #F4ECDD; padding: clamp(40px, 6vw, 64px) clamp(20px, 5vw, 64px);">
+    <div style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center;">
+      <div><div style="font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 600; color: #145A6B; line-height: 1;">12</div><div style="font-size: 13px; color: #5C6E70; margin-top: 8px;">уютных номеров</div></div>
+      <div><div style="font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 600; color: #145A6B; line-height: 1;">50<span style="font-size: 28px;">м</span></div><div style="font-size: 13px; color: #5C6E70; margin-top: 8px;">до кромки воды</div></div>
+      <div><div style="font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 600; color: #145A6B; line-height: 1;">9,7</div><div style="font-size: 13px; color: #5C6E70; margin-top: 8px;">средняя оценка гостей</div></div>
+      <div><div style="font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 600; color: #145A6B; line-height: 1;">24/7</div><div style="font-size: 13px; color: #5C6E70; margin-top: 8px;">консьерж и ресепшн</div></div>
+    </div>
+  </section>
+
+  <!-- ROOMS PREVIEW -->
+  <section style="max-width: 1240px; margin: 0 auto; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px);">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 44px; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-bottom: 14px;">Где остановиться</div>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 5vw, 56px); font-weight: 500; color: #0C3B45; margin: 0; line-height: 1;">Номера с видом на лагуну</h2>
+      </div>
+      <a href="rooms.dc.html" style="font-size: 14px; font-weight: 600; color: #145A6B; text-decoration: none; border-bottom: 1.5px solid #2E96A8; padding-bottom: 3px;">Все номера →</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px;">
+      <a href="rooms.dc.html" style="text-decoration: none; color: inherit; display: block; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 14px 40px rgba(12,59,69,0.08);">
+        <div style="height: 280px; background: linear-gradient(135deg,#2E96A8,#145A6B); overflow: hidden;"><img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 24px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#0C3B45;margin:0;">Делюкс «Прибой»</h3><span style="font-size:13px;color:#5C6E70;">от 8 900 ₽</span></div>
+          <p style="font-size:14px;color:#5C6E70;line-height:1.6;margin:10px 0 0;">28 м², балкон к морю, кровать king-size и ванна у окна.</p>
+        </div>
+      </a>
+      <a href="rooms.dc.html" style="text-decoration: none; color: inherit; display: block; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 14px 40px rgba(12,59,69,0.08);">
+        <div style="height: 280px; background: linear-gradient(135deg,#2E96A8,#145A6B); overflow: hidden;"><img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 24px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#0C3B45;margin:0;">Сюит «Лагуна»</h3><span style="font-size:13px;color:#5C6E70;">от 14 500 ₽</span></div>
+          <p style="font-size:14px;color:#5C6E70;line-height:1.6;margin:10px 0 0;">42 м², гостиная и спальня, панорамные окна и терраса.</p>
+        </div>
+      </a>
+      <a href="rooms.dc.html" style="text-decoration: none; color: inherit; display: block; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 14px 40px rgba(12,59,69,0.08);">
+        <div style="height: 280px; background: linear-gradient(135deg,#2E96A8,#145A6B); overflow: hidden;"><img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 24px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#0C3B45;margin:0;">Стандарт «Бриз»</h3><span style="font-size:13px;color:#5C6E70;">от 5 400 ₽</span></div>
+          <p style="font-size:14px;color:#5C6E70;line-height:1.6;margin:10px 0 0;">20 м², свет и воздух, тёплые тона и вид на сад.</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE SPLIT -->
+  <section style="display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; min-height: 560px;">
+    <div style="background: #0C3B45; color: #E4EEEF; display: flex; flex-direction: column; justify-content: center; padding: clamp(50px, 7vw, 96px) clamp(28px, 5vw, 80px);">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #7FC4CE; margin-bottom: 20px;">Дни в Лагуне</div>
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(32px, 4.5vw, 52px); font-weight: 500; color: #FBF7EF; margin: 0 0 24px; line-height: 1.05;">Утро на воде,<br>вечер у огня</h2>
+      <p style="font-size: 16px; line-height: 1.8; color: #AFCBD0; max-width: 440px; margin: 0 0 28px;">SPA на берегу, ужины с видом на закат, лодочные прогулки по лагуне и завтраки, которые приносят к вашему шезлонгу. Мы продумали каждую мелочь, чтобы вам не пришлось думать ни о чём.</p>
+      <a href="services.dc.html" style="align-self: flex-start; padding: 13px 26px; border: 1px solid #7FC4CE; border-radius: 999px; color: #FBF7EF; font-size: 14px; font-weight: 600; text-decoration: none;" style-hover="background: #145A6B;">Дополнительные услуги</a>
+    </div>
+    <div style="background: linear-gradient(135deg,#2E96A8,#0C3B45); overflow: hidden;"><img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+  </section>
+
+  <!-- REVIEW TEASER -->
+  <section style="max-width: 920px; margin: 0 auto; padding: clamp(70px, 10vw, 130px) clamp(20px, 5vw, 64px); text-align: center;">
+    <div style="font-size: 24px; color: #C8A368; letter-spacing: 3px; margin-bottom: 26px;">★★★★★</div>
+    <p style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: clamp(26px, 3.8vw, 40px); line-height: 1.4; color: #0C3B45; margin: 0;">«Мы уезжали с ощущением, что побывали не в отеле, а в гостях у моря. Вернёмся обязательно.»</p>
+    <div style="margin-top: 28px; font-size: 14px; font-weight: 600; color: #5C6E70;">Анна и Михаил · сюит «Лагуна»</div>
+    <a href="reviews.dc.html" style="display: inline-block; margin-top: 24px; font-size: 14px; font-weight: 600; color: #145A6B; text-decoration: none; border-bottom: 1.5px solid #2E96A8; padding-bottom: 3px;">Читать все отзывы →</a>
+  </section>
+
+  <!-- CTA -->
+  <section style="position: relative; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px); text-align: center; background: linear-gradient(120deg,#0C3B45,#2E96A8); overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?auto=format&fit=crop&w=2000&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.32;">
+    <div style="position: relative; z-index: 2; max-width: 680px; margin: 0 auto;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 5vw, 60px); font-weight: 500; color: #FBF7EF; margin: 0 0 18px; line-height: 1.02;">Море ждёт. Осталось выбрать даты.</h2>
+      <p style="font-size: 16px; color: #DCEAEC; line-height: 1.7; margin: 0 0 30px;">Забронируйте напрямую — лучшая цена, поздний выезд и бутылка вина в подарок.</p>
+      <a href="contacts.dc.html" style="display: inline-flex; align-items: center; padding: 16px 36px; border-radius: 999px; background: #FBF7EF; color: #0C3B45; font-size: 15px; font-weight: 700; text-decoration: none;" style-hover="background: #EBD6A8;">Забронировать номер</a>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

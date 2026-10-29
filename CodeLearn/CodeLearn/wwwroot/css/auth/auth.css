@@ -1,0 +1,263 @@
+﻿/* ══════════════════════════════════════
+   AUTH.CSS — пиксельный стиль
+══════════════════════════════════════ */
+
+html, body { overflow: hidden; }
+
+/* ── Страница авторизации ── */
+.auth-page {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--px);
+  overflow: hidden;
+}
+
+/* Пиксельная сетка фона */
+.auth-page::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Stars / canvas */
+.auth-page #stars {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.star   { position: absolute; background: white; border-radius: 0; }
+.digit  { position: absolute; color: rgba(255,255,255,0.12); font-family: var(--px); font-size: 10px; }
+.code   { position: absolute; color: rgba(255,255,255,0.08); font-family: var(--px); font-size: 10px; }
+
+/* ── Логотип ── */
+.auth-logo {
+  position: relative; z-index: 2;
+  font-family: var(--px);
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--border);
+  margin-bottom: 8px;
+  animation: px-slide-down 0.5s steps(6) both;
+}
+
+/* ── Подзаголовок ── */
+.auth-tagline {
+  position: relative; z-index: 2;
+  font-family: var(--px);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  animation: px-slide-down 0.6s steps(6) 0.1s both;
+}
+.auth-tagline::before { content: '▶ '; }
+
+/* ── Карточка ── */
+.auth-card {
+  position: relative; z-index: 2;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  padding: 32px 28px 24px;
+  width: 320px;
+  animation: px-slide-up 0.5s steps(8) 0.15s both;
+}
+
+/* Пиксельные уголки карточки */
+.auth-card::before,
+.auth-card::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  background: var(--border);
+}
+.auth-card::before { top: -2px; right: -2px; }
+.auth-card::after  { bottom: -2px; left: -2px; }
+
+/* ── Заголовок карточки ── */
+.auth-card-title {
+  font-family: var(--px);
+  font-size: 13px;
+  color: var(--text);
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border);
+}
+/* Обёртка скобок */
+.auth-card-title::before { content: '[ '; }
+.auth-card-title::after  { content: ' ]'; }
+
+/* ── Поля ввода ── */
+.auth-field {
+  width: 100%;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  padding: 10px;
+  color: var(--text);
+  font-family: var(--px);
+  font-size: 13px;
+  margin-bottom: 14px;
+  outline: none;
+  letter-spacing: 1px;
+  transition: border-color 0.1s;
+  image-rendering: pixelated;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+.auth-field::placeholder { color: var(--text3); }
+.auth-field:focus {
+  box-shadow: 4px 4px 0 var(--border);
+}
+
+/* ── Ошибки валидации ── */
+.auth-validation {
+  display: block;
+  color: #ff4444;
+  font-family: var(--px);
+  font-size: 10px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  padding-left: 2px;
+  min-height: 14px;
+  letter-spacing: 0.5px;
+}
+.auth-validation-summary { margin-top: 0; margin-bottom: 8px; }
+.auth-validation-summary ul { list-style: none; margin: 0; padding: 0; }
+
+/* ── Основная кнопка ── */
+.auth-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--inv);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  padding: 12px;
+  font-family: var(--px);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.1s, color 0.1s, transform 0.05s;
+  position: relative;
+}
+/* Пиксельная тень кнопки */
+.auth-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; right: -4px;
+  width: 100%; height: 100%;
+  border: 2px solid var(--border);
+  z-index: -1;
+  transition: bottom 0.05s, right 0.05s;
+}
+.auth-btn:hover  { background: var(--inv); color: var(--accent); }
+.auth-btn:active { transform: translate(2px, 2px); }
+.auth-btn:active::after { bottom: -2px; right: -2px; }
+
+/* ── Разделитель ── */
+.auth-divider {
+  text-align: center;
+  font-family: var(--px);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 3px;
+  margin: 16px 0;
+}
+
+/* ── Кнопка Google ── */
+.auth-btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  color: var(--text2);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  padding: 10px;
+  font-family: var(--px);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.1s, color 0.1s;
+  box-sizing: border-box;
+}
+.auth-btn-google:hover { background: var(--border); color: var(--inv); }
+
+/* ── Ссылка внизу ── */
+.auth-footer {
+  text-align: center;
+  margin-top: 18px;
+  font-family: var(--px);
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 2;
+}
+.auth-footer a { color: var(--text2); text-decoration: underline; }
+.auth-footer a:hover { color: var(--text); }
+
+/* ══════════════════════════════════════
+   ГЕОМЕТРИЧЕСКИЕ ФИГУРЫ — фоновые декорации
+══════════════════════════════════════ */
+
+.geo-shapes {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.geo {
+  position: absolute;
+  animation: geo-spin linear infinite;
+}
+.geo-1 {
+  width: 420px; height: 420px;
+  top: -120px; left: -120px;
+  animation-duration: 90s;
+}
+.geo-3 {
+  width: 260px; height: 260px;
+  top: 30px; right: 60px;
+  animation-duration: 75s;
+}
+.geo-5 {
+  width: 240px; height: 240px;
+  bottom: 80px; left: 60px;
+  animation-duration: 65s;
+}
+.geo-center {
+  position: absolute;
+  width: 520px; height: 520px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: geo-spin 100s linear infinite;
+  z-index: 0; pointer-events: none;
+}
+.geo-7 {
+  width: 480px; height: 480px;
+  bottom: -180px; right: -140px;
+  animation-duration: 120s;
+}
+@keyframes geo-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

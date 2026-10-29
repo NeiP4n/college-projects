@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;} body{margin:0;background:#FBF7EF;}</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="services" hint-size="100%,86px"></dc-import>
+
+  <section style="position: relative; padding: clamp(80px, 11vw, 150px) clamp(20px, 5vw, 64px) clamp(60px, 8vw, 110px); background: linear-gradient(120deg,#0C3B45,#2E96A8); overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=2000&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.28;">
+    <div style="position: relative; z-index: 2; max-width: 1240px; margin: 0 auto;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #BFE0E5; margin-bottom: 18px;">Больше, чем номер</div>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; color: #FBF7EF; margin: 0;">Дополнительные<br>услуги</h1>
+      <p style="font-size: 17px; line-height: 1.7; color: #E4EEEF; max-width: 540px; margin: 22px 0 0;">SPA, гастрономия, прогулки и забота о деталях. Всё, чтобы превратить поездку в воспоминание.</p>
+    </div>
+  </section>
+
+  <!-- SERVICE BLOCKS -->
+  <section style="max-width: 1240px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px);">
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px;">
+      <div style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 34px rgba(12,59,69,0.06);">
+        <div style="height: 240px; overflow: hidden; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 32px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#0C3B45;margin:0;">SPA у воды</h3><span style="font-size:13px;color:#8AA0A2;">от 3 500 ₽</span></div>
+          <p style="font-size:15px;line-height:1.7;color:#5C6E70;margin:14px 0 0;">Массаж, обёртывания и ритуалы для двоих в павильоне на самом берегу под шум волн.</p>
+        </div>
+      </div>
+      <div style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 34px rgba(12,59,69,0.06);">
+        <div style="height: 240px; overflow: hidden; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 32px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#0C3B45;margin:0;">Ужин при свечах</h3><span style="font-size:13px;color:#8AA0A2;">от 6 000 ₽</span></div>
+          <p style="font-size:15px;line-height:1.7;color:#5C6E70;margin:14px 0 0;">Сет из локальных морепродуктов с сомелье на террасе или прямо на песке у воды.</p>
+        </div>
+      </div>
+      <div style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 34px rgba(12,59,69,0.06);">
+        <div style="height: 240px; overflow: hidden; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 32px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#0C3B45;margin:0;">Лодочные прогулки</h3><span style="font-size:13px;color:#8AA0A2;">от 4 200 ₽</span></div>
+          <p style="font-size:15px;line-height:1.7;color:#5C6E70;margin:14px 0 0;">Прогулка по лагуне на закате с напитками — на собственных лодках отеля.</p>
+        </div>
+      </div>
+      <div style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 34px rgba(12,59,69,0.06);">
+        <div style="height: 240px; overflow: hidden; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1551918120-9739cb430c6d?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="padding: 32px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#0C3B45;margin:0;">Йога на рассвете</h3><span style="font-size:13px;color:#8AA0A2;">от 1 500 ₽</span></div>
+          <p style="font-size:15px;line-height:1.7;color:#5C6E70;margin:14px 0 0;">Утренние практики на деревянном помосте у воды с инструктором.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK SERVICES LIST -->
+  <section style="background: #F4ECDD; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px);">
+    <div style="max-width: 1100px; margin: 0 auto;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 44px); font-weight: 500; color: #0C3B45; margin: 0 0 40px; text-align: center;">И по запросу</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;">
+        <div style="background:#FBF7EF;border-radius:14px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;color:#15292E;">Трансфер от аэропорта</span><span style="font-size:13px;font-weight:600;color:#145A6B;">от 2 500 ₽</span></div>
+        <div style="background:#FBF7EF;border-radius:14px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;color:#15292E;">Завтрак в номер</span><span style="font-size:13px;font-weight:600;color:#145A6B;">800 ₽</span></div>
+        <div style="background:#FBF7EF;border-radius:14px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;color:#15292E;">Прокат велосипедов</span><span style="font-size:13px;font-weight:600;color:#145A6B;">600 ₽/день</span></div>
+        <div style="background:#FBF7EF;border-radius:14px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;color:#15292E;">Няня для детей</span><span style="font-size:13px;font-weight:600;color:#145A6B;">по запросу</span></div>
+        <div style="background:#FBF7EF;border-radius:14px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;color:#15292E;">Букет и шампанское</span><span style="font-size:13px;font-weight:600;color:#145A6B;">от 2 000 ₽</span></div>
+        <div style="background:#FBF7EF;border-radius:14px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;color:#15292E;">Экскурсии с гидом</span><span style="font-size:13px;font-weight:600;color:#145A6B;">от 3 000 ₽</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); text-align: center; max-width: 760px; margin: 0 auto;">
+    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 16px;">Соберём программу под вас</h2>
+    <p style="font-size: 16px; color: #5C6E70; line-height: 1.7; margin: 0 0 28px;">Напишите нам о поводе поездки — годовщина, отдых с детьми или соло-перезагрузка — и мы предложим идеальный сценарий.</p>
+    <a href="contacts.dc.html" style="display: inline-flex; padding: 15px 34px; border-radius: 999px; background: #145A6B; color: #FBF7EF; font-size: 15px; font-weight: 700; text-decoration: none;" style-hover="background: #0C3B45;">Связаться с консьержем</a>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+﻿/* ══════════════════════════════════════
+   COURSE.CSS — страница списка уроков
+   Стиль: пиксель / CRT (из прототипа)
+══════════════════════════════════════ */
+
+/* ── CRT-эффекты ── */
+@keyframes crt-flicker { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.93} 94%{opacity:1} 97%{opacity:.97} }
+body { animation: crt-flicker 8s infinite; }
+
+@keyframes px-fade-up { from{opacity:.7;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-20px) scale(.2)} }
+
+.crt-scanlines {
+  position: fixed; inset: 0; z-index: 99998; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
+}
+.crt-overlay {
+  position: fixed; inset: 0; z-index: 99999; pointer-events: none;
+  background: none;
+}
+
+/* ── Canvas-слои ── */
+#bg-canvas    { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#rain-canvas  { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.5; }
+#stars-canvas { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+#fog-canvas   { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0.18; }
+
+/* ── Страница ── */
+.px-page {
+  position: relative; z-index: 10;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 40px 16px 120px;
+}
+.px-container { width: 100%; max-width: 740px; }
+
+/* ── Хлебные крошки ── */
+.breadcrumb {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px; flex-wrap: wrap;
+  padding: 12px 14px;
+  background: rgba(0,0,0,0.82);
+  border: 1px solid #303030;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+.breadcrumb-item {
+  font-family: var(--px); font-size: 12px; color: #cfcfcf;
+  letter-spacing: 1px; text-decoration: none; transition: color .1s;
+  cursor: pointer; background: none; border: none; line-height: 1.7;
+}
+.breadcrumb-item:hover { color: #fff; }
+.breadcrumb-sep { font-family: var(--px); font-size: 12px; color: #777; }
+.breadcrumb-item.active { color: #fff; cursor: default; }
+
+/* Кнопка-ссылка навигации (← Карта) — с рамкой, как на странице урока */
+.breadcrumb-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid #3a3a3a;
+  background: rgba(255,255,255,0.04);
+  color: #e0e0e0 !important;
+  font-size: 12px;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.breadcrumb-link:hover {
+  border-color: #fff;
+  background: rgba(255,255,255,0.09);
+  color: #fff !important;
+}
+.bc-arrow { color: #35e66f; }
+
+/* ── Заголовок ── */
+.px-title {
+  font-family: var(--px); font-size: 13px; color: #fff;
+  letter-spacing: 3px; text-transform: uppercase;
+  text-shadow: 2px 2px 0 rgba(255,255,255,0.06);
+  line-height: 1.8; margin-bottom: 8px;
+}
+.px-desc {
+  font-family: var(--px); font-size: 11px;
+  color: var(--text2); letter-spacing: 1px; line-height: 2.2;
+  margin-bottom: 28px;
+}
+
+/* ── Прогресс модуля ── */
+.module-progress {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 28px; padding: 16px 18px;
+  border: 2px solid #3a3a3a; background: rgba(0,0,0,0.86);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+.module-progress-label {
+  font-family: var(--px); font-size: 12px; color: #cfcfcf;
+  letter-spacing: 2px; text-transform: uppercase; white-space: nowrap;
+}
+.module-progress-bar {
+  flex: 1; height: 10px; background: #080808; border: 1px solid #555;
+  overflow: hidden; position: relative;
+}
+.module-progress-fill {
+  height: 100%; background: #35e66f; transition: width .5s steps(12);
+  box-shadow: 0 0 12px rgba(53,230,111,0.55);
+}
+.module-progress-val {
+  font-family: var(--px); font-size: 13px; color: #fff;
+  letter-spacing: 1px; white-space: nowrap;
+}
+
+/* ── Список уроков ── */
+.lesson-list { display: flex; flex-direction: column; }
+
+.lesson-item {
+  display: flex; align-items: center;
+  border: 2px solid #222; margin-bottom: -2px;
+  text-decoration: none; position: relative; overflow: hidden;
+  transition: background .12s, border-color .12s;
+  cursor: pointer; background: transparent; min-height: 64px;
+}
+.lesson-item:hover:not(.lesson-item--locked) { background: rgba(255,255,255,0.05); border-color: #555; }
+.lesson-item:active:not(.lesson-item--locked) { background: rgba(255,255,255,0.09); }
+.lesson-item:last-child { margin-bottom: 0; }
+.lesson-item:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* Номер */
+.lesson-item-num {
+  font-family: var(--px); font-size: 10px; color: #444; letter-spacing: 1px;
+  border-right: 2px solid #222; width: 58px; text-align: center; flex-shrink: 0;
+  background: #060606; align-self: stretch;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Тело */
+.lesson-item-body {
+  flex: 1; padding: 14px 20px; display: flex; flex-direction: column;
+  gap: 6px; min-width: 0;
+}
+.lesson-item-title {
+  font-family: var(--px); font-size: 12px; color: #fff;
+  letter-spacing: 1px; line-height: 1.6;
+}
+.lesson-item-meta {
+  font-family: var(--px); font-size: 9px; color: var(--text3);
+  letter-spacing: 1px; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Статус */
+.lesson-item-status {
+  padding: 0 18px; border-left: 2px solid #222; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  min-width: 58px; align-self: stretch; font-size: 20px;
+}
+.lesson-item-status--done   { color: #4caf50; font-family: var(--px); font-size: 13px; }
+.lesson-item-status--active { color: #fff; font-family: var(--px); font-size: 13px; animation: blink 1s step-end infinite; }
+.lesson-item-status--locked { color: #333; font-size: 18px; }
+
+/* Текущий */
+.lesson-item--current { border-color: #444; }
+.lesson-item--current::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #fff; }
+.lesson-item--current .lesson-item-title { color: #fff; }
+
+/* Пройден */
+.lesson-item--done::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #2a4a2a; }
+.lesson-item--done .lesson-item-num { color: #2a4a2a; }
+.lesson-item--done .lesson-item-num--done { color: #4caf50; }
+.lesson-item--done .lesson-item-title { color: #555; }
+
+/* Заблокирован */
+.lesson-item--locked { cursor: default; pointer-events: none; }
+.lesson-item--locked .lesson-item-title { color: #333; }
+.lesson-item--locked .lesson-item-meta  { color: #222; }
+.lesson-item--locked .lesson-item-num   { color: #222; }
+
+/* Стрелка при наведении */
+.lesson-item-arrow {
+  font-family: var(--px); font-size: 10px; color: #333;
+  position: absolute; right: 72px; top: 50%; transform: translateY(-50%);
+  transition: color .12s, right .12s; pointer-events: none;
+}
+.lesson-item:hover:not(.lesson-item--locked) .lesson-item-arrow { color: #666; right: 68px; }
+
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+/* Пустой список */
+.lesson-empty {
+  border: 2px solid #222; padding: 32px; text-align: center;
+  font-family: var(--px); font-size: 10px; color: var(--text3);
+  letter-spacing: 2px; line-height: 2.5;
+}
+
+@media (max-width: 600px) {
+  .px-title { font-size: 13px; }
+  .lesson-item-title { font-size: 11px; }
+}

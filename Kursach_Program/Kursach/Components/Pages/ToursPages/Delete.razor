@@ -1,0 +1,80 @@
+﻿@page "/tours/delete"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Удалить</PageTitle>
+
+<h1>Удалить</h1>
+
+<p>Вы уверены, что хотите удалить это?</p>
+<div>
+    <h2>Туры</h2>
+    <hr />
+    @if (tours is null)
+    {
+        <p><em>Загрузка...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Название</dt>
+            <dd class="col-sm-10">@tours.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Направление</dt>
+            <dd class="col-sm-10">@tours.Destination</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Дата начала</dt>
+            <dd class="col-sm-10">@tours.StartDate</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Дата окончания</dt>
+            <dd class="col-sm-10">@tours.EndDate</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Цена</dt>
+            <dd class="col-sm-10">@tours.Price</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Описание</dt>
+            <dd class="col-sm-10">@tours.Description</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Доступные места</dt>
+            <dd class="col-sm-10">@tours.AvailableSeats</dd>
+        </dl>
+        <EditForm method="post" Model="tours" OnValidSubmit="DeleteTours" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(tours is null)">Удалить</button> |
+            <a href="/tours">Назад к списку</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Tours? tours;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        tours = await context.Tours.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (tours is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteTours()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Tours.Remove(tours!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/tours");
+    }
+}

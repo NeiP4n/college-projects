@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;} body{margin:0;background:#FBF7EF;}</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="blog" hint-size="100%,86px"></dc-import>
+
+  <section style="padding: clamp(80px, 11vw, 150px) clamp(20px, 5vw, 64px) clamp(40px, 6vw, 70px); max-width: 1240px; margin: 0 auto;">
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-bottom: 18px;">Журнал «Лагуна»</div>
+    <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; color: #0C3B45; margin: 0; max-width: 760px;">Истории с берега</h1>
+  </section>
+
+  <!-- FEATURED -->
+  <section style="max-width: 1240px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 64px) clamp(50px, 7vw, 90px);">
+    <a href="blog.dc.html" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 0; border-radius: 22px; overflow: hidden; background: #0C3B45; text-decoration: none; min-height: 420px;">
+      <div style="overflow: hidden; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+      <div style="padding: clamp(36px, 5vw, 60px); display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #7FC4CE; margin-bottom: 16px;">Путеводитель · 6 мин</div>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 3.6vw, 42px); font-weight: 500; color: #FBF7EF; margin: 0 0 16px; line-height: 1.1;">Семь причин приехать в бухту не летом</h2>
+        <p style="font-size: 15.5px; line-height: 1.7; color: #AFCBD0; margin: 0;">Осенью и весной лагуна особенно тиха: пустые пляжи, мягкий свет и цены, которые приятно удивляют. Рассказываем, чем заняться в межсезонье.</p>
+        <span style="margin-top: 24px; font-size: 14px; font-weight: 600; color: #EBD6A8;">Читать статью →</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- GRID -->
+  <section style="max-width: 1240px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 64px) clamp(70px, 10vw, 120px);">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;">
+      <a href="blog.dc.html" style="text-decoration: none; color: inherit; display: block;">
+        <div style="border-radius: 16px; overflow: hidden; height: 240px; background: linear-gradient(135deg,#2E96A8,#0C3B45); margin-bottom: 20px;"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2E96A8; margin-bottom: 10px;">Гастрономия · 4 мин</div>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 0 0 10px; line-height: 1.15;">Завтрак, ради которого встают рано</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #5C6E70; margin: 0;">Локальные продукты, рыба с утреннего улова и джемы из садовых ягод.</p>
+      </a>
+      <a href="blog.dc.html" style="text-decoration: none; color: inherit; display: block;">
+        <div style="border-radius: 16px; overflow: hidden; height: 240px; background: linear-gradient(135deg,#2E96A8,#0C3B45); margin-bottom: 20px;"><img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2E96A8; margin-bottom: 10px;">Wellness · 5 мин</div>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 0 0 10px; line-height: 1.15;">Ритуалы SPA на берегу моря</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #5C6E70; margin: 0;">Как устроены наши процедуры и почему они работают лучше у воды.</p>
+      </a>
+      <a href="blog.dc.html" style="text-decoration: none; color: inherit; display: block;">
+        <div style="border-radius: 16px; overflow: hidden; height: 240px; background: linear-gradient(135deg,#2E96A8,#0C3B45); margin-bottom: 20px;"><img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2E96A8; margin-bottom: 10px;">Маршруты · 7 мин</div>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 0 0 10px; line-height: 1.15;">Лагуна на лодке: маршрут на закат</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #5C6E70; margin: 0;">Куда поплыть вечером и где встретить самый красивый закат сезона.</p>
+      </a>
+      <a href="blog.dc.html" style="text-decoration: none; color: inherit; display: block;">
+        <div style="border-radius: 16px; overflow: hidden; height: 240px; background: linear-gradient(135deg,#2E96A8,#0C3B45); margin-bottom: 20px;"><img src="https://images.unsplash.com/photo-1551918120-9739cb430c6d?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2E96A8; margin-bottom: 10px;">Истории · 3 мин</div>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 0 0 10px; line-height: 1.15;">Как рыбацкий дом стал отелем</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #5C6E70; margin: 0;">Небольшая история о том, с чего всё начиналось в 2016 году.</p>
+      </a>
+      <a href="blog.dc.html" style="text-decoration: none; color: inherit; display: block;">
+        <div style="border-radius: 16px; overflow: hidden; height: 240px; background: linear-gradient(135deg,#2E96A8,#0C3B45); margin-bottom: 20px;"><img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2E96A8; margin-bottom: 10px;">Советы · 4 мин</div>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 0 0 10px; line-height: 1.15;">Что взять с собой к морю</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #5C6E70; margin: 0;">Короткий список вещей, которые сделают отдых ещё приятнее.</p>
+      </a>
+      <a href="blog.dc.html" style="text-decoration: none; color: inherit; display: block;">
+        <div style="border-radius: 16px; overflow: hidden; height: 240px; background: linear-gradient(135deg,#2E96A8,#0C3B45); margin-bottom: 20px;"><img src="https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #2E96A8; margin-bottom: 10px;">События · 5 мин</div>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 0 0 10px; line-height: 1.15;">Вечера живой музыки на террасе</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: #5C6E70; margin: 0;">Расписание летних концертов и джазовых вечеров у воды.</p>
+      </a>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Услуги</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="brand">
+      <span class="brand-name">ОТЕЛИ</span>
+      <span class="brand-section">Услуги</span>
+    </div>
+    <button class="header-back" onclick="postToHost('navigate', { page: 'main' })">&larr; Главная</button>
+  </div>
+
+  <div class="app-main">
+    <div>
+      <div class="page-eyebrow">Гостиница</div>
+      <h1 class="page-title">Список заказов услуг</h1>
+    </div>
+
+    <div class="layout-split">
+      <div class="card">
+        <div class="field">
+          <label for="bookingSelect">Бронь</label>
+          <select id="bookingSelect"></select>
+        </div>
+        <div class="field">
+          <label for="serviceSelect">Услуга</label>
+          <select id="serviceSelect" onchange="onServiceChange()"></select>
+        </div>
+        <div class="field">
+          <label for="orderDate">Дата заказа</label>
+          <input id="orderDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="priceInput">Цена</label>
+          <input id="priceInput" type="number" />
+        </div>
+        <div class="field">
+          <label for="statusSelect">Статус</label>
+          <select id="statusSelect">
+            <option>Выполнена</option>
+            <option>Не выполнена</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-block" style="margin-bottom:12px;" onclick="exportCurrentOrder()">Экспорт текущей</button>
+        <button class="btn btn-primary btn-block" onclick="addOrder()">Заказать услугу</button>
+      </div>
+
+      <div>
+        <div class="section-header" style="margin-bottom:12px;">
+          <h2 class="page-title" style="font-size:22px;">Заказы</h2>
+          <button class="btn btn-outline" onclick="postToHost('exportOrders', {})">Экспорт</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Код</th><th>Бронь</th><th>Гость</th><th>Услуга</th><th>Дата заказа</th><th>Цена</th><th>Статус</th></tr>
+            </thead>
+            <tbody id="orderRows"><tr class="empty-row"><td colspan="7">Загрузка...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="bridge.js"></script>
+<script>
+  function fillSelect(id, items, placeholder) {
+    const el = document.getElementById(id);
+    el.innerHTML = '<option value="">' + escapeHtml(placeholder) + '</option>' +
+      items.map(function (it) { return '<option value="' + it.id + '">' + escapeHtml(it.label) + '</option>'; }).join('');
+  }
+
+  function renderBookingOptions(items) { fillSelect('bookingSelect', items, 'Выберите бронь'); }
+  function renderServiceOptions(items) { fillSelect('serviceSelect', items, 'Выберите услугу'); }
+
+  function onServiceChange() {
+    const id = document.getElementById('serviceSelect').value;
+    if (id) postToHost('serviceSelected', { serviceId: Number(id) });
+  }
+
+  function setPrice(value) { document.getElementById('priceInput').value = value; }
+
+  function addOrder() {
+    postToHost('addOrder', {
+      bookingId: document.getElementById('bookingSelect').value,
+      serviceId: document.getElementById('serviceSelect').value,
+      orderDate: document.getElementById('orderDate').value,
+      price: document.getElementById('priceInput').value,
+      status: document.getElementById('statusSelect').value
+    });
+  }
+
+  function exportCurrentOrder() {
+    postToHost('exportCurrentOrder', {
+      bookingId: document.getElementById('bookingSelect').value,
+      bookingLabel: document.getElementById('bookingSelect').selectedOptions[0] ? document.getElementById('bookingSelect').selectedOptions[0].text : '',
+      serviceLabel: document.getElementById('serviceSelect').selectedOptions[0] ? document.getElementById('serviceSelect').selectedOptions[0].text : '',
+      orderDate: document.getElementById('orderDate').value,
+      price: document.getElementById('priceInput').value,
+      status: document.getElementById('statusSelect').value
+    });
+  }
+
+  function renderOrders(rows) {
+    const body = document.getElementById('orderRows');
+    if (!rows || rows.length === 0) { body.innerHTML = '<tr class="empty-row"><td colspan="7">Нет данных</td></tr>'; return; }
+    body.innerHTML = rows.map(function (r) {
+      return '<tr onclick="postToHost(\'markOrderDone\', { orderId: ' + r.orderId + ' })">' +
+        '<td>' + r.orderId + '</td>' +
+        '<td>' + escapeHtml(r.bookingId) + '</td>' +
+        '<td>' + escapeHtml(r.guest) + '</td>' +
+        '<td>' + escapeHtml(r.service) + '</td>' +
+        '<td>' + escapeHtml(r.orderDate) + '</td>' +
+        '<td>' + escapeHtml(r.price) + '</td>' +
+        '<td><span class="chip' + (r.status === 'Выполнена' ? ' chip-gold' : '') + '">' + escapeHtml(r.status) + '</span></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  postToHost('ready', {});
+</script>
+</body>
+</html>

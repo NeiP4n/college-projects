@@ -1,0 +1,2660 @@
+@model CodeLearn.Models.Lesson
+@using System.Text.Json
+@using Markdig
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/lesson/lesson.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+}
+
+@section FullPage {
+
+<canvas id="bg-canvas"></canvas>
+<canvas id="rain-canvas"></canvas>
+<canvas id="stars-canvas"></canvas>
+<canvas id="fog-canvas"></canvas>
+<div class="crt-scanlines"></div>
+<div class="crt-overlay"></div>
+
+@{
+  var blockCount    = Model.ContentBlocks.Count;
+  bool alreadyDone  = ViewBag.IsCompleted == true;
+  var savedCompletedBlocks = alreadyDone
+      ? blockCount
+      : Math.Clamp((int)(ViewBag.CompletedBlockCount ?? 0), 0, blockCount);
+  var defaultLang   = (string)(ViewBag.DefaultLang ?? "csharp");
+}
+
+<!-- Прогресс-бар (sticky) -->
+<div class="lesson-progress-bar">
+  <div class="lesson-progress-fill" id="lpFill"
+       style="width:@(blockCount == 0 ? "0" : Math.Round(savedCompletedBlocks / (double)blockCount * 100).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></div>
+</div>
+<div class="lesson-progress-label">
+  <span class="lesson-progress-steps" id="lpSteps">
+    @(alreadyDone ? "урок завершён ✓" : $"блок {savedCompletedBlocks} из {blockCount}")
+  </span>
+  <span class="lesson-progress-title">@Model.Title.StripEmoji()</span>
+</div>
+
+<!-- Счётчик ошибок (верхний правый угол) -->
+<div class="lesson-error-badge" id="errorBadge" aria-live="polite">
+  <span class="err-icon">✗</span>
+  <span class="err-title">ошибки урока</span>
+  <span id="errorCount">0</span>
+</div>
+
+<script>
+  // Загружаем количество ошибок при входе на страницу
+  (async function() {
+    try {
+      const res = await fetch('/Lesson/GetErrors?id=@Model.Id');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('errorCount').textContent = data.lessonErrors || 0;
+      }
+    } catch(e) {}
+  })();
+</script>
+
+<div class="px-page">
+  <div class="px-container">
+
+    <!-- Хлебные крошки -->
+    <nav class="breadcrumb">
+      <a asp-controller="Main" asp-action="Index" class="breadcrumb-item breadcrumb-link">
+        <span class="bc-arrow">←</span> Карта
+      </a>
+      <span class="breadcrumb-sep">›</span>
+      @if (Model.Module != null)
+      {
+        <a asp-controller="Course" asp-action="Index" asp-route-id="@Model.ModuleId" class="breadcrumb-item breadcrumb-link">
+          @Model.Module.Title.StripEmoji()
+        </a>
+        <span class="breadcrumb-sep">›</span>
+      }
+      <span class="breadcrumb-item active">@Model.Title.StripEmoji()</span>
+    </nav>
+
+    <!-- Заголовок -->
+    <div class="px-title">@Model.Title.StripEmoji()</div>
+
+    <!-- Панель-окно с контентом -->
+    <div class="px-panel">
+      <div class="panel-titlebar">
+        <div class="panel-dot"></div>
+        <div class="panel-dot"></div>
+        <div class="panel-dot"></div>
+        <span class="panel-title">lesson.cs</span>
+        @if (Model.Module != null)
+        {
+          <span class="panel-tag">@Model.Module.Title.StripEmoji()</span>
+        }
+        <button class="panel-expand-btn" id="panelExpandBtn" onclick="togglePanelWidth()" title="Расширить окно">⇔</button>
+      </div>
+      <div class="panel-body">
+
+        <!-- Блоки контента -->
+        <div class="lesson-blocks @(alreadyDone ? "lesson--completed" : "")" id="lessonBlocks">
+
+          @foreach (var (block, blockIdx) in Model.ContentBlocks.Select((b, i) => (b, i)))
+          {
+            var content     = JsonDocument.Parse(block.Content).RootElement;
+            var isVisible   = blockIdx <= savedCompletedBlocks || alreadyDone;
+            var hiddenStyle = isVisible ? "" : "display:none";
+            // Язык компилятора: из блока, иначе fallback по языку курса
+            var _rawLang  = content.TryGetProperty("language", out var _bLang) ? (_bLang.GetString() ?? "") : "";
+            var blockLang = string.IsNullOrEmpty(_rawLang) ? defaultLang : _rawLang;
+
+            @* ── ТЕКСТ ─────────────────────────────────────────────────────── *@
+            @if (block.Type == "text")
+            {
+              var mdRaw = content.TryGetProperty("markdown", out var _md) ? (_md.GetString() ?? "")
+                        : content.TryGetProperty("body", out var _body) ? (_body.GetString() ?? "") : "";
+              var mdHtml = Markdown.ToHtml(mdRaw, new MarkdownPipelineBuilder()
+                  .UseAdvancedExtensions()
+                  .DisableHtml()   // XSS: запрещаем raw HTML внутри Markdown
+                  .Build());
+              <div class="lb lb-text" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <div class="lb-type-tag">теория</div>
+                <div class="lb-md-body">@Html.Raw(mdHtml)</div>
+                @if (!alreadyDone) {
+                  <div class="lb-continue">
+                    <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                  </div>
+                }
+              </div>
+            }
+
+            @* ── КОД ───────────────────────────────────────────────────────── *@
+            else if (block.Type == "code")
+            {
+              var lang     = content.TryGetProperty("language", out var l) ? l.GetString() : "code";
+              var code     = content.TryGetProperty("code",     out var c) ? c.GetString() : "";
+              var title    = content.TryGetProperty("title",    out var t) ? t.GetString() : "";
+              var aceLang  = (lang == "python") ? "python" : "csharp";
+              <div class="lb lb-code" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <div class="lb-code-header">
+                  <span class="lb-code-title">@(string.IsNullOrEmpty(title) ? "Код" : title)</span>
+                  <div class="lb-code-right">
+                    <span class="lb-code-lang">@lang</span>
+                    <button class="lb-copy-btn" onclick="copyCode(this)">скопировать</button>
+                  </div>
+                </div>
+                @* Ace read-only viewer — provides proper syntax highlighting *@
+                <div class="lb-code-ace-view" data-lang="@aceLang"></div>
+                @* Hidden source: Razor-encodes special chars; .textContent gives raw code for Ace *@
+                <pre class="lb-code-src" style="display:none">@code</pre>
+                @if (!alreadyDone) {
+                  <div class="lb-continue">
+                    <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                  </div>
+                }
+              </div>
+            }
+
+            @* ── ЗАДАНИЕ ────────────────────────────────────────────────────── *@
+            else if (block.Type == "task")
+            {
+              var tTitle = content.TryGetProperty("title",          out var tt) ? tt.GetString() : "Задание";
+              var tDesc  = content.TryGetProperty("description",    out var td) ? td.GetString() : "";
+              var tCode  = content.TryGetProperty("starterCode",    out var tc) ? tc.GetString() : "";
+              var tOut   = content.TryGetProperty("expectedOutput", out var to) ? to.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" data-starter="@tCode" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">задание</span>
+                  <span class="lb-task-title">@tTitle</span>
+                </div>
+                @if (!string.IsNullOrEmpty(tDesc)) { <div class="lb-task-desc">@tDesc</div> }
+                <textarea class="lb-task-input" spellcheck="false" placeholder="Напиши решение..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetCode(this)" title="Сбросить до исходного кода">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ТЕСТ ───────────────────────────────────────────────────────── *@
+            else if (block.Type == "quiz")
+            {
+              var question = content.TryGetProperty("question",    out var q)   ? q.GetString()   : "";
+              var correct  = content.TryGetProperty("correct",     out var cor) ? cor.GetInt32()  : 0;
+              var expl     = content.TryGetProperty("explanation", out var ex)  ? ex.GetString()  : "";
+              var options  = content.TryGetProperty("options", out var opts)
+                  ? opts.EnumerateArray().Select(o => o.GetString()).ToList()
+                  : new List<string?>();
+              var letters  = new[] { "A", "B", "C", "D", "E" };
+              <div class="lb lb-quiz" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-quiz-header">
+                  <span class="lb-quiz-badge">тест</span>
+                  <span class="lb-quiz-q">@question</span>
+                </div>
+                <div class="lb-quiz-opts">
+                  @for (int i = 0; i < options.Count; i++) {
+                    <button class="lb-quiz-opt"
+                            data-letter="@(i < letters.Length ? letters[i] : (i+1).ToString())"
+                            data-idx="@i" onclick="selectQuizOpt(this)">
+                      @options[i]
+                    </button>
+                  }
+                </div>
+                <button class="lb-quiz-submit" onclick="submitQuiz(this)">Подтвердить ответ</button>
+                @if (!string.IsNullOrEmpty(expl)) { <div class="lb-quiz-expl" style="display:none">@expl</div> }
+              </div>
+            }
+
+            @* ── КНОПКА ─────────────────────────────────────────────────────── *@
+            else if (block.Type == "button")
+            {
+              var btnText    = content.TryGetProperty("text",    out var bt) ? bt.GetString() : "Далее";
+              var btnHref    = content.TryGetProperty("href",    out var bh) ? bh.GetString() : "#";
+              var btnVariant = content.TryGetProperty("variant", out var bv) ? bv.GetString() : "primary";
+              <div class="lb lb-button" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <a href="@btnHref" class="lb-btn @(btnVariant == "secondary" ? "secondary" : "")">@btnText</a>
+                @if (!alreadyDone) {
+                  <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                }
+              </div>
+            }
+
+            @* ── ПРЕДСКАЗАНИЕ ────────────────────────────────────────────────── *@
+            else if (block.Type == "prediction")
+            {
+              var predCode     = content.TryGetProperty("code",           out var pc) ? pc.GetString() : "";
+              var predExpected = content.TryGetProperty("expectedOutput", out var pe) ? pe.GetString() : "";
+              var predHint     = content.TryGetProperty("hint",           out var ph) ? ph.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">предсказание</span>
+                  <span class="lb-task-title">Что выведет этот код?</span>
+                </div>
+                <pre class="lb-code-pre" style="border-bottom:2px solid #1a1a1a"><code class="language-csharp">@predCode</code></pre>
+                @if (!string.IsNullOrEmpty(predHint)) { <div class="lb-task-hint">@predHint</div> }
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:60px" placeholder="Введи свой ответ..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ПРАВКА СТРОКИ ───────────────────────────────────────────────── *@
+            else if (block.Type == "modify")
+            {
+              var modCode  = content.TryGetProperty("code",             out var mc) ? mc.GetString() : "";
+              var modInstr = content.TryGetProperty("modifyInstruction",out var mi) ? mi.GetString() : "";
+              var modExp   = content.TryGetProperty("expectedOutput",   out var me) ? me.GetString() : "";
+              var modHint  = content.TryGetProperty("hint",             out var mh) ? mh.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">правка строки</span>
+                  <span class="lb-task-title">@modInstr</span>
+                </div>
+                <textarea class="lb-task-input" spellcheck="false">@modCode</textarea>
+                @if (!string.IsNullOrEmpty(modHint)) { <div class="lb-task-hint">@modHint</div> }
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ПРОПУСКИ ────────────────────────────────────────────────────── *@
+            else if (block.Type == "fill_blank")
+            {
+              var fbTemplate = content.TryGetProperty("template", out var fbt) ? fbt.GetString() : "";
+              var fbBlanks   = content.TryGetProperty("blanks",   out var fbb)
+                  ? fbb.EnumerateArray().Select(b => b.GetString()).ToList() : new List<string?>();
+              var fbHint     = content.TryGetProperty("hint",     out var fbh) ? fbh.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">пропуски</span>
+                  <span class="lb-task-title">Заполни пропуски</span>
+                </div>
+                @if (!string.IsNullOrEmpty(fbHint)) { <div class="lb-task-desc">@fbHint</div> }
+                @{
+                  var fbParts = fbTemplate!.Split("___");
+                  var fbSb = new System.Text.StringBuilder();
+                  for (int fi = 0; fi < fbParts.Length; fi++) {
+                    fbSb.Append("<span class=\"fb-part\">");
+                    fbSb.Append(System.Net.WebUtility.HtmlEncode(fbParts[fi]));
+                    fbSb.Append("</span>");
+                    if (fi < fbParts.Length - 1) {
+                      var fbAnsLen = fi < fbBlanks.Count ? (fbBlanks[fi]?.Length ?? 5) : 5;
+                      var fbW = Math.Max(60, fbAnsLen * 11);
+                      fbSb.Append($"<input class=\"lb-blank-input\" type=\"text\" data-blank-idx=\"{fi}\" style=\"width:{fbW}px\" spellcheck=\"false\">");
+                    }
+                  }
+                }
+                <div class="lb-fill-blank-area">@Html.Raw(fbSb.ToString())</div>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkFillBlank(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── БАГ ─────────────────────────────────────────────────────────── *@
+            else if (block.Type == "fix_bug")
+            {
+              var bugCode = content.TryGetProperty("buggyCode",      out var bbc) ? bbc.GetString() : "";
+              var bugExp  = content.TryGetProperty("expectedOutput", out var bbe) ? bbe.GetString() : "";
+              var bugHint = content.TryGetProperty("hint",           out var bbh) ? bbh.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" data-starter="@bugCode" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">баг</span>
+                  <span class="lb-task-title">Найди и исправь ошибку</span>
+                </div>
+                @if (!string.IsNullOrEmpty(bugHint)) { <div class="lb-task-hint">@bugHint</div> }
+                <textarea class="lb-task-input" spellcheck="false">@bugCode</textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetCode(this)" title="Сбросить до исходного кода">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── МИНИ-ЗАДАЧА ─────────────────────────────────────────────────── *@
+            else if (block.Type == "mini_task")
+            {
+              var mtTitle = content.TryGetProperty("title",          out var mtt) ? mtt.GetString() : "Мини-задача";
+              var mtDesc  = content.TryGetProperty("description",    out var mtd) ? mtd.GetString() : "";
+              var mtCode  = content.TryGetProperty("starterCode",    out var mtc) ? mtc.GetString() : "";
+              var mtExp   = content.TryGetProperty("expectedOutput", out var mte) ? mte.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" data-starter="@mtCode" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">мини</span>
+                  <span class="lb-task-title">@mtTitle</span>
+                </div>
+                @if (!string.IsNullOrEmpty(mtDesc)) { <div class="lb-task-desc">@mtDesc</div> }
+                <textarea class="lb-task-input" spellcheck="false">@mtCode</textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetCode(this)" title="Сбросить до исходного кода">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ОБЪЯСНЕНИЕ ───────────────────────────────────────────────────── *@
+            else if (block.Type == "explain")
+            {
+              var exlPrompt = content.TryGetProperty("prompt",       out var ep) ? ep.GetString() : "Объясни, что делает этот код:";
+              var exlCode   = content.TryGetProperty("codeSnippet",  out var ec) ? ec.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">объяснение</span>
+                  <span class="lb-task-title">@exlPrompt</span>
+                </div>
+                @if (!string.IsNullOrEmpty(exlCode)) {
+                  <pre class="lb-code-pre" style="border-bottom:2px solid #1a1a1a"><code class="language-csharp">@exlCode</code></pre>
+                }
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:80px" placeholder="Напиши объяснение в 1–2 предложениях..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="markExplainDone(this)">Готово</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── НАМЕРЕНИЕ → КОД ─────────────────────────────────────────────── *@
+            else if (block.Type == "intent_to_code")
+            {
+              var itcIntent = content.TryGetProperty("intent",          out var ii) ? ii.GetString() : "";
+              var itcExp    = content.TryGetProperty("expectedOutput",  out var ie) ? ie.GetString() : "";
+              var itcHint   = content.TryGetProperty("hint",            out var ih) ? ih.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">намерение→код</span>
+                  <span class="lb-task-title">@itcIntent</span>
+                </div>
+                @if (!string.IsNullOrEmpty(itcHint)) { <div class="lb-task-hint">@itcHint</div> }
+                <textarea class="lb-task-input" spellcheck="false" placeholder="Напиши код, который это делает..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── КОНТРОЛЬНЫЙ ВОПРОС ───────────────────────────────────────────── *@
+            else if (block.Type == "control_question")
+            {
+              var cqQuestion = content.TryGetProperty("question", out var cqq) ? cqq.GetString() : "";
+              var cqAnswer   = content.TryGetProperty("answer",   out var cqa) ? cqa.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">контроль</span>
+                  <span class="lb-task-title">@cqQuestion</span>
+                </div>
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:60px" placeholder="Твой ответ..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ПО ТЕМЕ / ПЕРЕНОС ────────────────────────────────────────────── *@
+            else if (block.Type == "knowledge_check" || block.Type == "transfer_test")
+            {
+              var kcQ     = content.TryGetProperty("question",    out var kcq) ? kcq.GetString() : "";
+              var kcC     = content.TryGetProperty("correct",     out var kcc) ? kcc.GetInt32()  : 0;
+              var kcExpl  = content.TryGetProperty("explanation", out var kce) ? kce.GetString() : "";
+              var kcTopic = content.TryGetProperty("topic",       out var kct) ? kct.GetString() : "";
+              var kcOpts  = content.TryGetProperty("options",     out var kco)
+                  ? kco.EnumerateArray().Select(o => o.ValueKind == JsonValueKind.String ? o.GetString() : (o.ValueKind == JsonValueKind.Null ? null : o.GetRawText())).ToList() : new List<string?>();
+              var kcLetters = new[] { "A", "B", "C", "D" };
+              var kcBadge   = block.Type == "transfer_test" ? "перенос" : "по теме";
+              <div class="lb lb-quiz" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-quiz-header">
+                  <span class="lb-quiz-badge">@kcBadge</span>
+                  <span class="lb-quiz-q">@(string.IsNullOrEmpty(kcTopic) ? kcQ : $"[{kcTopic}] {kcQ}")</span>
+                </div>
+                <div class="lb-quiz-opts">
+                  @for (int ki = 0; ki < kcOpts.Count; ki++) {
+                    <button class="lb-quiz-opt"
+                            data-letter="@(ki < kcLetters.Length ? kcLetters[ki] : (ki+1).ToString())"
+                            data-idx="@ki" onclick="selectQuizOpt(this)">@kcOpts[ki]</button>
+                  }
+                </div>
+                <button class="lb-quiz-submit" onclick="submitQuiz(this)">Подтвердить</button>
+                @if (!string.IsNullOrEmpty(kcExpl)) { <div class="lb-quiz-expl" style="display:none">@kcExpl</div> }
+              </div>
+            }
+
+            @* ── НА ВРЕМЯ ─────────────────────────────────────────────────────── *@
+            else if (block.Type == "timed_test")
+            {
+              var ttQ    = content.TryGetProperty("question",      out var ttq) ? ttq.GetString() : "";
+              var ttTime = content.TryGetProperty("timeLimit",     out var ttt) ? ttt.GetInt32()  : 30;
+              var ttExp  = content.TryGetProperty("expectedOutput",out var tte) ? tte.GetString() : "";
+              var ttHint = content.TryGetProperty("hint",          out var tth) ? tth.GetString() : "";
+              <div class="lb lb-task lb-timed" data-block-idx="@blockIdx" data-block-id="@block.Id" data-timelimit="@ttTime" data-language="@blockLang" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">⏱ на время</span>
+                  <span class="lb-task-title">@ttQ</span>
+                  <span class="lb-timed-clock" style="display:none">
+                    <svg class="lb-timed-ring" viewBox="0 0 44 44">
+                      <circle cx="22" cy="22" r="18" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+                      <circle class="lb-timed-ring-fill" cx="22" cy="22" r="18" fill="none" stroke="#ffd700" stroke-width="3"
+                              stroke-dasharray="113.1 113.1" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 22 22)"/>
+                      <text class="lb-timed-secs-svg" x="22" y="27" text-anchor="middle" font-size="12" fill="#ffd700" font-family="monospace">@ttTime</text>
+                    </svg>
+                  </span>
+                </div>
+                @if (!string.IsNullOrEmpty(ttHint)) { <div class="lb-task-hint lb-timed-hint" style="display:none">@ttHint</div> }
+                <div class="lb-timed-overlay">
+                  <button class="lb-btn lb-timed-start" onclick="startTimedTest(this)">▶ Начать (@ttTime с)</button>
+                </div>
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:60px" placeholder="Ответ..." disabled></textarea>
+                <div class="lb-task-footer" style="display:none">
+                  <button class="lb-btn lb-timed-submit" onclick="checkTimedTest(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── СРАВНЕНИЕ ВАРИАНТОВ ──────────────────────────────────────────── *@
+            else if (block.Type == "compare_variants")
+            {
+              var cvQ       = content.TryGetProperty("question",    out var cvq) ? cvq.GetString() : "";
+              var cvCorrect = content.TryGetProperty("correct",     out var cvc) ? cvc.GetInt32()  : 0;
+              var cvExpl    = content.TryGetProperty("explanation", out var cve) ? cve.GetString() : "";
+              var cvVariants = content.TryGetProperty("variants",   out var cvv)
+                  ? cvv.EnumerateArray().Select(v => new {
+                      title = v.TryGetProperty("title", out var vt) ? vt.GetString() : "",
+                      code  = v.TryGetProperty("code",  out var vc) ? vc.GetString() : ""
+                    }).ToList()
+                  : new List<dynamic>() as dynamic;
+              var cvLetters = new[] { "A", "B", "C" };
+              <div class="lb lb-quiz" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-quiz-header">
+                  <span class="lb-quiz-badge">сравнение</span>
+                  <span class="lb-quiz-q">@cvQ</span>
+                </div>
+                <div class="lb-quiz-opts">
+                  @for (int ci = 0; ci < cvVariants.Count; ci++) {
+                    var cv = cvVariants[ci];
+                    <button class="lb-quiz-opt" style="flex-direction:column;align-items:flex-start;gap:8px"
+                            data-letter="@(ci < cvLetters.Length ? cvLetters[ci] : (ci+1).ToString())"
+                            data-idx="@ci" onclick="selectQuizOpt(this)">
+                      <span style="font-size:8px;color:#888">@cv.title</span>
+                      <pre style="margin:0;white-space:pre-wrap"><code class="language-csharp">@cv.code</code></pre>
+                    </button>
+                  }
+                </div>
+                <button class="lb-quiz-submit" onclick="submitQuiz(this)">Подтвердить</button>
+                @if (!string.IsNullOrEmpty(cvExpl)) { <div class="lb-quiz-expl" style="display:none">@cvExpl</div> }
+              </div>
+            }
+
+            @* ── ДВА ПУТИ ─────────────────────────────────────────────────────── *@
+            else if (block.Type == "two_path")
+            {
+              var tpQ      = content.TryGetProperty("question",   out var tpq) ? tpq.GetString() : "";
+              var tpConc   = content.TryGetProperty("conclusion", out var tpc) ? tpc.GetString() : "";
+              var tpExpl   = content.TryGetProperty("explanation",out var tpe) ? tpe.GetString() : tpConc;
+              var tpLang   = (blockLang == "python") ? "python" : "csharp";
+              var tpA = content.TryGetProperty("pathA", out var pA) ? new {
+                  title = pA.TryGetProperty("title", out var at)  ? at.GetString() : "Путь A",
+                  code  = pA.TryGetProperty("code",  out var ac)  ? ac.GetString() : "",
+                  pros  = pA.TryGetProperty("pros",  out var apr) ? apr.GetString() : "",
+                  cons  = pA.TryGetProperty("cons",  out var aco) ? aco.GetString() : "" } : null;
+              var tpB = content.TryGetProperty("pathB", out var pB) ? new {
+                  title = pB.TryGetProperty("title", out var bt2) ? bt2.GetString() : "Путь B",
+                  code  = pB.TryGetProperty("code",  out var bc)  ? bc.GetString()  : "",
+                  pros  = pB.TryGetProperty("pros",  out var bpr) ? bpr.GetString() : "",
+                  cons  = pB.TryGetProperty("cons",  out var bco) ? bco.GetString() : "" } : null;
+              <div class="lb lb-text" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <div class="lb-type-tag">два пути</div>
+                <div class="lb-twop-question">@tpQ</div>
+                <div class="lb-twop-grid">
+                  @if (tpA != null) {
+                    <div class="lb-twop-col">
+                      <div class="lb-twop-col-title">@tpA.title</div>
+                      <div class="lb-code-ace-view" data-lang="@tpLang"></div>
+                      <pre class="lb-code-src" style="display:none">@tpA.code</pre>
+                      @if (!string.IsNullOrEmpty(tpA.pros)) {
+                        <div class="lb-twop-meta lb-twop-pros">✓ @tpA.pros</div>
+                      }
+                      @if (!string.IsNullOrEmpty(tpA.cons)) {
+                        <div class="lb-twop-meta lb-twop-cons">✗ @tpA.cons</div>
+                      }
+                    </div>
+                  }
+                  @if (tpB != null) {
+                    <div class="lb-twop-col">
+                      <div class="lb-twop-col-title">@tpB.title</div>
+                      <div class="lb-code-ace-view" data-lang="@tpLang"></div>
+                      <pre class="lb-code-src" style="display:none">@tpB.code</pre>
+                      @if (!string.IsNullOrEmpty(tpB.pros)) {
+                        <div class="lb-twop-meta lb-twop-pros">✓ @tpB.pros</div>
+                      }
+                      @if (!string.IsNullOrEmpty(tpB.cons)) {
+                        <div class="lb-twop-meta lb-twop-cons">✗ @tpB.cons</div>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (!string.IsNullOrEmpty(tpExpl)) {
+                  <div class="lb-twop-conclusion">→ @tpExpl</div>
+                }
+                @if (!alreadyDone) {
+                  <div class="lb-continue">
+                    <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                  </div>
+                }
+              </div>
+            }
+
+            @* ── ЧТО ЕСЛИ ─────────────────────────────────────────────────────── *@
+            else if (block.Type == "counterfactual")
+            {
+              var cfCode   = content.TryGetProperty("code",       out var cfc) ? cfc.GetString() : "";
+              var cfLine   = content.TryGetProperty("removeLine", out var cfl) ? cfl.GetInt32()  : 1;
+              var cfQ      = content.TryGetProperty("question",   out var cfq) ? cfq.GetString() : $"Что если убрать строку {cfLine}?";
+              var cfAnswer = content.TryGetProperty("answer",     out var cfa) ? cfa.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">что если</span>
+                  <span class="lb-task-title">@cfQ</span>
+                </div>
+                <pre class="lb-code-pre" style="border-bottom:2px solid #1a1a1a"><code class="language-csharp">@cfCode</code></pre>
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:60px" placeholder="Твой ответ..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ПО ЧАСТЯМ ────────────────────────────────────────────────────── *@
+            else if (block.Type == "progressive_reveal")
+            {
+              var prTitle = content.TryGetProperty("title",          out var prt) ? prt.GetString() : "";
+              var prHints = content.TryGetProperty("hints",          out var prh)
+                  ? prh.EnumerateArray().Select(h => h.GetString()).ToList() : new List<string?>();
+              var prFinal = content.TryGetProperty("finalCode",      out var prf) ? prf.GetString() : "";
+              var prExp   = content.TryGetProperty("expectedOutput", out var pre) ? pre.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id"
+                   data-hints="@string.Join("|||", prHints)" data-final-code="@prFinal" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">по частям</span>
+                  <span class="lb-task-title">@prTitle</span>
+                </div>
+                <div class="lb-progressive-hints" style="padding:0"></div>
+                <div class="lb-task-footer" style="border-top:2px solid #1a1a1a;margin-top:0">
+                  <button class="lb-btn secondary" onclick="revealNextHint(this)">▶ Следующая подсказка</button>
+                  <button class="lb-btn" onclick="checkTask(this)" style="display:none">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+                <textarea class="lb-task-input" spellcheck="false" style="display:none"></textarea>
+              </div>
+            }
+
+            @* ── СМЫСЛ-ДИФ ───────────────────────────────────────────────────── *@
+            else if (block.Type == "semantic_diff")
+            {
+              var sdIntended = content.TryGetProperty("intendedCode", out var sdi) ? sdi.GetString() : "";
+              var sdActual   = content.TryGetProperty("actualCode",   out var sda) ? sda.GetString() : "";
+              var sdExpl     = content.TryGetProperty("explanation",  out var sde) ? sde.GetString() : "";
+              <div class="lb lb-text" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <div class="lb-type-tag">смысл-диф</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid #222;margin-bottom:12px">
+                  <div style="border-right:2px solid #222">
+                    <div style="padding:6px 12px;font-size:7px;color:#4caf50;letter-spacing:2px;border-bottom:1px solid #222">Хотел написать</div>
+                    <pre style="margin:0;padding:12px;background:#060606"><code class="language-csharp">@sdIntended</code></pre>
+                  </div>
+                  <div>
+                    <div style="padding:6px 12px;font-size:7px;color:#ff4444;letter-spacing:2px;border-bottom:1px solid #222">Написал на самом деле</div>
+                    <pre style="margin:0;padding:12px;background:#060606"><code class="language-csharp">@sdActual</code></pre>
+                  </div>
+                </div>
+                @if (!string.IsNullOrEmpty(sdExpl)) { <div style="font-size:9px;color:#777;padding-top:8px">@sdExpl</div> }
+                @if (!alreadyDone) {
+                  <div class="lb-continue">
+                    <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                  </div>
+                }
+              </div>
+            }
+
+            @* ── КОНТРПРИМЕР / СЛОМАЙ ─────────────────────────────────────────── *@
+            else if (block.Type == "counterexample" || block.Type == "adversarial_test")
+            {
+              var ceCode  = content.TryGetProperty("code",        out var cec) ? cec.GetString() : "";
+              var ceClaim = content.TryGetProperty("claim",       out var cel) ? cel.GetString() : "";
+              var ceAns   = content.TryGetProperty("answer",      out var cea) ? cea.GetString() : "";
+              var ceHint  = content.TryGetProperty("hint",        out var ceh) ? ceh.GetString() : "";
+              var ceExpl  = content.TryGetProperty("explanation", out var cee) ? cee.GetString() : "";
+              var ceBadge = block.Type == "adversarial_test" ? "сломай" : "контрпример";
+              var ceTitle = block.Type == "adversarial_test"
+                  ? "Придумай вход, на котором код сломается"
+                  : "Найди вход, на котором утверждение ложно";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">@ceBadge</span>
+                  <span class="lb-task-title">@ceTitle</span>
+                </div>
+                @if (!string.IsNullOrEmpty(ceCode))  { <pre class="lb-code-pre" style="border-bottom:2px solid #1a1a1a"><code class="language-csharp">@ceCode</code></pre> }
+                @if (!string.IsNullOrEmpty(ceClaim)) { <div class="lb-task-desc">Утверждение: <strong>@ceClaim</strong></div> }
+                @if (!string.IsNullOrEmpty(ceHint))  { <div class="lb-task-hint">@ceHint</div> }
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:60px" placeholder="Введи вход, который ломает утверждение..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+                @if (!string.IsNullOrEmpty(ceExpl)) { <div class="lb-quiz-expl" style="display:none">@ceExpl</div> }
+              </div>
+            }
+
+            @* ── ОТ ЦЕЛИ / С НУЛЯ / ОГРАНИЧЕНИЕ / КОНТР. ЗАДАЧА ─────────────── *@
+            else if (block.Type == "goal_construction" || block.Type == "rebuild_scratch" ||
+                     block.Type == "constraint"        || block.Type == "control_task")
+            {
+              var gcTitle   = content.TryGetProperty("title",          out var gct) ? gct.GetString() : "";
+              var gcDesc    = content.TryGetProperty("description",    out var gcd) ? gcd.GetString() : "";
+              var gcGoal    = content.TryGetProperty("goal",           out var gcg) ? gcg.GetString() : "";
+              var gcConst   = content.TryGetProperty("constraint",     out var gcc) ? gcc.GetString() : "";
+              var gcStarter = content.TryGetProperty("starterCode",    out var gcs) ? gcs.GetString() : "";
+              var gcExp     = content.TryGetProperty("expectedOutput", out var gce) ? gce.GetString() : "";
+              var gcHint    = content.TryGetProperty("hint",           out var gch) ? gch.GetString() : "";
+              var gcBadge   = block.Type switch {
+                "constraint"     => "ограничение",
+                "rebuild_scratch"=> "с нуля",
+                "control_task"   => "контроль",
+                _                => "от цели"
+              };
+              var gcHeader = string.IsNullOrEmpty(gcTitle) ? (string.IsNullOrEmpty(gcGoal) ? "Задача" : gcGoal) : gcTitle;
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" data-starter="@gcStarter" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">@gcBadge</span>
+                  <span class="lb-task-title">@gcHeader</span>
+                </div>
+                @if (!string.IsNullOrEmpty(gcDesc))  { <div class="lb-task-desc">@gcDesc</div> }
+                @if (!string.IsNullOrEmpty(gcConst)) { <div class="lb-task-hint">⛔ Ограничение: @gcConst</div> }
+                @if (!string.IsNullOrEmpty(gcHint))  { <div class="lb-task-hint">@gcHint</div> }
+                <textarea class="lb-task-input" spellcheck="false">@gcStarter</textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetCode(this)" title="Сбросить до исходного кода">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── МУТАЦИЯ ──────────────────────────────────────────────────────── *@
+            else if (block.Type == "mutation")
+            {
+              var mutBase = content.TryGetProperty("baseCode",       out var mbc) ? mbc.GetString() : "";
+              var mutMut  = content.TryGetProperty("mutation",       out var mmt) ? mmt.GetString() : "";
+              var mutExp  = content.TryGetProperty("expectedOutput", out var mme) ? mme.GetString() : "";
+              var mutHint = content.TryGetProperty("hint",           out var mmh) ? mmh.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" data-starter="@mutBase" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">мутация</span>
+                  <span class="lb-task-title">Адаптируй код под новые условия</span>
+                </div>
+                <div class="lb-task-desc">Изменение: <strong>@mutMut</strong></div>
+                @if (!string.IsNullOrEmpty(mutHint)) { <div class="lb-task-hint">@mutHint</div> }
+                <textarea class="lb-task-input" spellcheck="false">@mutBase</textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetCode(this)" title="Сбросить до исходного кода">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+             @* ── ФУНКЦИЯ С ТЕСТАМИ ────────────────────────────────────────────── *@
+            else if (block.Type == "func_task")
+            {
+              var ftTitle = content.TryGetProperty("title",        out var ftt) ? ftt.GetString() : "Задача";
+              var ftDesc  = content.TryGetProperty("description",  out var ftd) ? ftd.GetString() : "";
+              var ftCode  = content.TryGetProperty("starterCode",  out var ftc) ? ftc.GetString() : "";
+              var ftTest  = content.TryGetProperty("testCode",     out var fte) ? fte.GetString() : "";
+              var ftHint  = content.TryGetProperty("hint",         out var fth) ? fth.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-language="@blockLang" data-run="true" data-test-code="@ftTest" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">функция</span>
+                  <span class="lb-task-title">@ftTitle</span>
+                </div>
+                @if (!string.IsNullOrEmpty(ftDesc)) { <div class="lb-task-desc">@ftDesc</div> }
+                @if (!string.IsNullOrEmpty(ftHint)) { <div class="lb-task-hint">@ftHint</div> }
+                <textarea class="lb-task-input" spellcheck="false">@ftCode</textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkFuncTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+             @* ── ЧЕКПОИНТ ─────────────────────────────────────────────────────── *@
+            else if (block.Type == "checkpoint")
+            {
+              var cpTitle = content.TryGetProperty("title",       out var cpt) ? cpt.GetString() : "Чекпоинт";
+              var cpDesc  = content.TryGetProperty("description", out var cpd) ? cpd.GetString() : "";
+              var cpTasks = content.TryGetProperty("tasks",       out var cptasks)
+                  ? cptasks.EnumerateArray().Select(t => t.GetString()).ToList() : new List<string?>();
+              <div class="lb lb-text" data-block-idx="@blockIdx" style="@hiddenStyle">
+                <div class="lb-type-tag">чекпоинт</div>
+                <div style="font-size:10px;color:#fff;margin-bottom:8px">⬛ @cpTitle</div>
+                @if (!string.IsNullOrEmpty(cpDesc)) { <div style="font-size:9px;color:#777;margin-bottom:12px">@cpDesc</div> }
+                @if (cpTasks.Any()) {
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    @for (int cpi = 0; cpi < cpTasks.Count; cpi++) {
+                      <div style="font-size:9px;color:#ccc;padding:8px 12px;border:1px solid #222;letter-spacing:1px">
+                        @(cpi + 1). @cpTasks[cpi]
+                      </div>
+                    }
+                  </div>
+                }
+                @if (!alreadyDone) {
+                  <div class="lb-continue" style="margin-top:12px">
+                    <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                  </div>
+                }
+              </div>
+            }
+
+            @* ── ПОРЯДОК ──────────────────────────────────────────────────────── *@
+            else if (block.Type == "drag_order")
+            {
+              var dopieces   = content.TryGetProperty("pieces",   out var dop)
+                  ? dop.EnumerateArray().Select(p => p.GetString()).ToList() : new List<string?>();
+              var doSolution = content.TryGetProperty("solution", out var dos)
+                  ? dos.EnumerateArray().Select(s => s.GetInt32()).ToList() : new List<int>();
+              var doHint     = content.TryGetProperty("hint",     out var doh) ? doh.GetString() : "";
+              var doIndentByPiece = new Dictionary<int, int>();
+              var doDepth = 0;
+              foreach (var pieceIdx in doSolution)
+              {
+                var pieceText = pieceIdx >= 0 && pieceIdx < dopieces.Count ? (dopieces[pieceIdx] ?? "").Trim() : "";
+                if (pieceText.StartsWith("}")) { doDepth = Math.Max(0, doDepth - 1); }
+                doIndentByPiece[pieceIdx] = doDepth;
+                if (pieceText.EndsWith("{")) { doDepth++; }
+              }
+              <div class="lb lb-drag-order" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">порядок</span>
+                  <span class="lb-task-title">Расставь блоки кода в правильном порядке</span>
+                </div>
+                @if (!string.IsNullOrEmpty(doHint)) { <div class="lb-task-hint">@doHint</div> }
+                <div class="lb-drag-area">
+                  @for (int dpi = 0; dpi < dopieces.Count; dpi++) {
+                    var doIndent = doIndentByPiece.TryGetValue(dpi, out var level) ? level : 0;
+                    <div class="lb-drag-piece" draggable="true" data-orig-idx="@dpi"
+                         style="--indent-level:@doIndent">
+                      <span class="lb-drag-grip" aria-hidden="true">::</span>
+                      <code class="lb-drag-code">@dopieces[dpi]</code>
+                    </div>
+                  }
+                </div>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkDragOrder(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── КОД → СМЫСЛ ─────────────────────────────────────────────────── *@
+            else if (block.Type == "code_to_intent")
+            {
+              var ctiCode    = content.TryGetProperty("code",          out var ctc)   ? ctc.GetString()   : "";
+              var ctiOpts    = content.TryGetProperty("options",       out var cto)
+                  ? cto.EnumerateArray().Select(o => o.GetString()).ToList() : new List<string?>();
+              var ctiCorrect = content.TryGetProperty("correctIntent", out var ctcor) ? ctcor.GetInt32()  : 0;
+              var ctiLetters = new[] { "A", "B", "C", "D" };
+              <div class="lb lb-quiz" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-quiz-header">
+                  <span class="lb-quiz-badge">код→смысл</span>
+                  <span class="lb-quiz-q">Что делает этот код?</span>
+                </div>
+                <pre class="lb-code-pre" style="margin-bottom:12px"><code class="language-csharp">@ctiCode</code></pre>
+                <div class="lb-quiz-opts" style="padding:0 0 4px">
+                  @for (int cti = 0; cti < ctiOpts.Count; cti++) {
+                    <button class="lb-quiz-opt"
+                            data-letter="@(cti < ctiLetters.Length ? ctiLetters[cti] : (cti+1).ToString())"
+                            data-idx="@cti" onclick="selectQuizOpt(this)">@ctiOpts[cti]</button>
+                  }
+                </div>
+                <button class="lb-quiz-submit" onclick="submitQuiz(this)">Подтвердить</button>
+              </div>
+            }
+
+            @* ── ШАБЛОН ───────────────────────────────────────────────────────── *@
+            else if (block.Type == "template_completion")
+            {
+              var tcTemplate = content.TryGetProperty("template", out var tct) ? tct.GetString() : "";
+              var tcBlanks   = content.TryGetProperty("blanks",   out var tcb)
+                  ? tcb.EnumerateArray().Select(b => b.GetString()).ToList() : new List<string?>();
+              var tcHint     = content.TryGetProperty("hint",     out var tch) ? tch.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">шаблон</span>
+                  <span class="lb-task-title">Дополни шаблон</span>
+                </div>
+                @if (!string.IsNullOrEmpty(tcHint)) { <div class="lb-task-desc">@tcHint</div> }
+                @{
+                  var tcParts = tcTemplate!.Split("___");
+                  var tcSb = new System.Text.StringBuilder();
+                  for (int tci = 0; tci < tcParts.Length; tci++) {
+                    tcSb.Append("<span class=\"fb-part\">");
+                    tcSb.Append(System.Net.WebUtility.HtmlEncode(tcParts[tci]));
+                    tcSb.Append("</span>");
+                    if (tci < tcParts.Length - 1) {
+                      var tcAnsLen = tci < tcBlanks.Count ? (tcBlanks[tci]?.Length ?? 5) : 5;
+                      var tcW = Math.Max(60, tcAnsLen * 11);
+                      tcSb.Append($"<input class=\"lb-blank-input\" type=\"text\" data-blank-idx=\"{tci}\" style=\"width:{tcW}px\" spellcheck=\"false\">");
+                    }
+                  }
+                }
+                <div class="lb-fill-blank-area">@Html.Raw(tcSb.ToString())</div>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkFillBlank(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── СКРЫТЫЙ БАГ ──────────────────────────────────────────────────── *@
+            else if (block.Type == "broken_reality")
+            {
+              var brCode = content.TryGetProperty("code",           out var brc) ? brc.GetString() : "";
+              var brEdge = content.TryGetProperty("edgeCaseInput",  out var bre) ? bre.GetString() : "";
+              var brDesc = content.TryGetProperty("bugDescription", out var brd) ? brd.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">скрытый баг</span>
+                  <span class="lb-task-title">Найди вход, на котором код сломается</span>
+                </div>
+                <pre class="lb-code-pre" style="border-bottom:2px solid #1a1a1a"><code class="language-csharp">@brCode</code></pre>
+                @if (!string.IsNullOrEmpty(brDesc)) { <div class="lb-task-desc">@brDesc</div> }
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:60px" placeholder="Введи проблемный входной аргумент..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkTask(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── ИСПЫТАНИЕ ────────────────────────────────────────────────────── *@
+            else if (block.Type == "challenge_task")
+            {
+              var chTitle   = content.TryGetProperty("title",          out var cht) ? cht.GetString() : "Финальное испытание";
+              var chDesc    = content.TryGetProperty("description",    out var chd) ? chd.GetString() : "";
+              var chReqs    = content.TryGetProperty("requirements",   out var chr)
+                  ? chr.EnumerateArray().Select(r => r.GetString()).ToList() : new List<string?>();
+              var chStarter = content.TryGetProperty("starterCode",    out var chs) ? chs.GetString() : "";
+              var chExp     = content.TryGetProperty("expectedOutput", out var che) ? che.GetString() : "";
+              <div class="lb lb-challenge" data-block-idx="@blockIdx" data-block-id="@block.Id" data-language="@blockLang" data-run="true" data-starter="@chStarter" style="@hiddenStyle">
+                <!-- Trophy header -->
+                <div class="lb-challenge-header">
+                  <div class="lb-challenge-trophy">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" shape-rendering="crispEdges" fill="none">
+                      <rect fill="#ffd700" x="18" y="42" width="12" height="4"/>
+                      <rect fill="#ffd700" x="14" y="40" width="20" height="2"/>
+                      <rect fill="#ffd700" opacity=".8" x="10" y="16" width="28" height="22"/>
+                      <rect fill="#000" opacity=".4" x="12" y="18" width="24" height="18"/>
+                      <rect fill="#fff" opacity=".18" x="12" y="18" width="4" height="18"/>
+                      <rect fill="#fff" opacity=".18" x="12" y="18" width="24" height="3"/>
+                      <rect fill="#ffd700" opacity=".8" x="6" y="18" width="4" height="12"/>
+                      <rect fill="#ffd700" opacity=".8" x="38" y="18" width="4" height="12"/>
+                      <rect fill="#ffd700" x="8" y="14" width="32" height="2"/>
+                      <rect fill="#fff" opacity=".9" x="22" y="22" width="4" height="4"/>
+                      <rect fill="#fff" opacity=".9" x="20" y="24" width="8" height="2"/>
+                      <rect fill="#fff" opacity=".9" x="18" y="26" width="12" height="2"/>
+                      <rect fill="#fff" opacity=".9" x="20" y="28" width="8" height="2"/>
+                      <rect fill="#fff" opacity=".9" x="22" y="30" width="4" height="2"/>
+                    </svg>
+                  </div>
+                  <div class="lb-challenge-title-block">
+                    <div class="lb-challenge-badge">ИСПЫТАНИЕ</div>
+                    <div class="lb-challenge-title">@chTitle</div>
+                  </div>
+                </div>
+                @if (!string.IsNullOrEmpty(chDesc)) {
+                  <div class="lb-challenge-desc">@chDesc</div>
+                }
+                @if (chReqs.Any()) {
+                  <div class="lb-challenge-reqs">
+                    <div class="lb-challenge-reqs-title">Требования:</div>
+                    @for (int ri = 0; ri < chReqs.Count; ri++) {
+                      <div class="lb-challenge-req-item">
+                        <span class="lb-challenge-req-num">@(ri + 1).</span>
+                        <span>@chReqs[ri]</span>
+                      </div>
+                    }
+                  </div>
+                }
+                <textarea class="lb-task-input lb-challenge-editor" spellcheck="false">@chStarter</textarea>
+                <div class="lb-task-footer lb-challenge-footer">
+                  <button class="lb-btn lb-challenge-btn" onclick="checkChallenge(this)">▶ Запустить и проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetCode(this)" title="Сбросить до исходного кода">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── КОРОТКИЙ ОТВЕТ ───────────────────────────────────────────────── *@
+            else if (block.Type == "short_answer")
+            {
+              var saQ    = content.TryGetProperty("question", out var saq) ? saq.GetString() : "";
+              var saAns  = content.TryGetProperty("answer",   out var saa) ? saa.GetString() : "";
+              var saHint = content.TryGetProperty("hint",     out var sah) ? sah.GetString() : "";
+              <div class="lb lb-task" data-block-idx="@blockIdx" data-block-id="@block.Id" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">ввод</span>
+                  <span class="lb-task-title">@saQ</span>
+                </div>
+                @if (!string.IsNullOrEmpty(saHint)) { <div class="lb-task-desc" style="font-style:italic;color:#555">Подсказка: @saHint</div> }
+                <textarea class="lb-task-input" spellcheck="false" style="min-height:52px" placeholder="Введи ответ..."></textarea>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkShortAnswer(this)">Проверить</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── КЛАССИФИКАЦИЯ ────────────────────────────────────────────────── *@
+            else if (block.Type == "classify")
+            {
+              var clPrompt = content.TryGetProperty("instruction", out var _clInstr) ? _clInstr.GetString()
+                           : content.TryGetProperty("prompt", out var _clPrmt) ? _clPrmt.GetString() : "Классифицируй";
+              var clCats   = content.TryGetProperty("categories", out var clc)
+                  ? clc.EnumerateArray().Select(x => x.GetString()).ToList() : new List<string?>();
+              List<string?> clItems;
+              string clAns;
+              if (content.TryGetProperty("items", out var _clItemsEl) && _clItemsEl.ValueKind == JsonValueKind.Array)
+              {
+                  var _clFirst = _clItemsEl.EnumerateArray().FirstOrDefault();
+                  if (_clFirst.ValueKind == JsonValueKind.Object)
+                  {
+                      clItems = _clItemsEl.EnumerateArray()
+                          .Select(x => x.TryGetProperty("text", out var _t) ? _t.GetString() : null).ToList();
+                      var _clAnsDict = _clItemsEl.EnumerateArray()
+                          .Where(x => x.TryGetProperty("text", out _) && x.TryGetProperty("category", out _))
+                          .ToDictionary(
+                              x => x.GetProperty("text").GetString() ?? "",
+                              x => x.GetProperty("category").GetString() ?? "");
+                      clAns = JsonSerializer.Serialize(_clAnsDict);
+                  }
+                  else
+                  {
+                      clItems = _clItemsEl.EnumerateArray().Select(x => x.GetString()).ToList();
+                      clAns = content.TryGetProperty("answer", out var _cla1) ? _cla1.GetString() ?? "{}" : "{}";
+                  }
+              }
+              else
+              {
+                  clItems = new List<string?>();
+                  clAns = content.TryGetProperty("answer", out var _cla2) ? _cla2.GetString() ?? "{}" : "{}";
+              }
+              <div class="lb lb-classify" data-block-idx="@blockIdx" data-answer="@clAns" style="@hiddenStyle">
+                <div class="lb-task-header">
+                  <span class="lb-task-badge">классификация</span>
+                  <span class="lb-task-title">@clPrompt</span>
+                </div>
+                <div class="lb-classify-body">
+                  <div class="lb-classify-items" id="clItems_@blockIdx">
+                    @foreach (var item in clItems.Where(i => !string.IsNullOrEmpty(i))) {
+                      <span class="lb-classify-chip" draggable="true" data-item="@item">@item</span>
+                    }
+                  </div>
+                  <div class="lb-classify-cats">
+                    @foreach (var cat in clCats.Where(c => !string.IsNullOrEmpty(c))) {
+                      <div class="lb-classify-cat" data-cat="@cat">
+                        <div class="lb-classify-cat-label">@cat</div>
+                        <div class="lb-classify-drop" ondragover="event.preventDefault()" ondrop="classifyDrop(event,this)"></div>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="lb-task-footer">
+                  <button class="lb-btn" onclick="checkClassify(this)">Проверить</button>
+                  <button class="lb-btn lb-reset-btn" onclick="resetClassify(this)" title="Сбросить">↺</button>
+                  <span class="lb-task-result"></span>
+                </div>
+              </div>
+            }
+
+            @* ── НЕИЗВЕСТНЫЙ ТИП ──────────────────────────────────────────────── *@
+            else
+            {
+              <div class="lb lb-text" data-block-idx="@blockIdx" style="@hiddenStyle;color:#555;font-size:8px">
+                [Тип блока: @block.Type]
+                @if (!alreadyDone) {
+                  <div class="lb-continue">
+                    <button class="lb-btn secondary" onclick="completeBlock(this)">Далее →</button>
+                  </div>
+                }
+              </div>
+            }
+
+          }
+
+          <!-- Экран завершения урока -->
+          <div class="lesson-complete" id="lessonComplete"
+               style="@(alreadyDone ? "" : "display:none")">
+            <div class="lesson-complete-icon">✓</div>
+            <div class="lesson-complete-text">Урок пройден!<br>Продолжай в том же духе</div>
+            @if (Model.Module != null)
+            {
+              <a asp-controller="Course" asp-action="Index" asp-route-id="@Model.ModuleId"
+                 class="lesson-complete-btn">← Вернуться к модулю</a>
+            }
+            else
+            {
+              <a asp-controller="Main" asp-action="Index"
+                 class="lesson-complete-btn">← На карту</a>
+            }
+            <button class="lesson-complete-btn lesson-reset-btn" onclick="resetLesson()">↺ Перепройти</button>
+          </div>
+
+        </div><!-- /lesson-blocks -->
+      </div><!-- /panel-body -->
+    </div><!-- /px-panel -->
+
+    <!-- ══════════════════════════════════════════════════
+         ЧАТ УРОКА
+    ══════════════════════════════════════════════════ -->
+    <div class="lesson-chat" id="lessonChat">
+      <!-- Вкладки -->
+      <div class="lc-tabs">
+        <button class="lc-tab lc-tab--active" id="tabDiscuss" onclick="switchTab('discuss')">
+          Обсуждение <span class="lc-count" id="lcCount"></span>
+        </button>
+        <button class="lc-tab" id="tabAi" onclick="switchTab('ai')">
+          AI-наставник
+        </button>
+        <span class="lc-ai-quota" id="lcAiQuota"></span>
+      </div>
+
+      <!-- ── ПАНЕЛЬ: ОБСУЖДЕНИЕ ── -->
+      <div id="panelDiscuss">
+        <div class="lc-feed" id="lcFeed">
+          <div class="lc-loading" id="lcLoading">Загрузка...</div>
+        </div>
+        <button class="lc-load-more" id="lcLoadMore" style="display:none" onclick="chatLoadMore()">
+          ↑ Загрузить предыдущие
+        </button>
+        <div class="lc-composer">
+          <img class="lc-my-avatar"
+               src="@(string.IsNullOrEmpty(ViewBag.MyAvatarUrl as string) ? "/img/main/ui/default-avatar.png" : (string)ViewBag.MyAvatarUrl)"
+               alt="">
+          <textarea class="lc-input" id="lcInput" placeholder="Напиши вопрос или мысль по уроку..." rows="1"
+                    onkeydown="chatKeyDown(event)" oninput="chatInputGrow(this)"></textarea>
+          <button class="lc-send-btn" onclick="chatSend()" id="lcSendBtn">➤</button>
+        </div>
+      </div>
+
+      <!-- ── ПАНЕЛЬ: AI-НАСТАВНИК ── -->
+      <div id="panelAi" style="display:none">
+        <div class="lc-ai-intro">
+          <div>
+            <div class="lc-ai-intro-title">AI-наставник</div>
+            <div class="lc-ai-intro-sub">Помогает разобраться — не даёт готовых ответов.</div>
+          </div>
+        </div>
+        <div class="lc-feed lc-ai-feed" id="aiFeed"></div>
+        <div class="lc-composer">
+          <img class="lc-my-avatar"
+               src="@(string.IsNullOrEmpty(ViewBag.MyAvatarUrl as string) ? "/img/main/ui/default-avatar.png" : (string)ViewBag.MyAvatarUrl)"
+               alt="">
+          <textarea class="lc-input" id="aiInput" placeholder="Задай вопрос по уроку или задаче..." rows="1"
+                    onkeydown="aiKeyDown(event)" oninput="chatInputGrow(this)"></textarea>
+          <button class="lc-send-btn" onclick="aiSend()" id="aiSendBtn">➤</button>
+        </div>
+      </div>
+    </div>
+
+<!-- Highlight.js — подсветка кода в блоках просмотра -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+<script>
+  // Подсвечиваем ВСЕ блоки кода (теория, предсказание, сравнение, баги и т.д.)
+  document.querySelectorAll('pre code').forEach(function(el) {
+    try { hljs.highlightElement(el); } catch (e) {}
+  });
+</script>
+
+<!-- Ace Editor (редактор кода для задач) -->
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min-noconflict/ace.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min-noconflict/mode-csharp.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min-noconflict/mode-python.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min-noconflict/theme-tomorrow_night_bright.js"></script>
+<script src="~/js/lesson/effects.js" asp-append-version="true"></script>
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  ПРОГРЕССИЯ БЛОКОВ
+// ══════════════════════════════════════════════════════════════════
+var TOTAL        = @blockCount;
+var LESSON_ID    = @Model.Id;
+var ALREADY_DONE = @(alreadyDone ? "true" : "false");
+var INITIAL_COMPLETED = @savedCompletedBlocks;
+var LESSON_LANG  = '@defaultLang';   // fallback язык курса
+var completed    = INITIAL_COMPLETED;
+
+// Инициализация прогресс-бара
+(function () {
+  if (ALREADY_DONE && TOTAL > 0) {
+    document.getElementById('lpFill').style.width = '100%';
+  }
+  restoreSavedProgress();
+  if (!ALREADY_DONE && TOTAL > 0 && INITIAL_COMPLETED >= TOTAL) {
+    showComplete();
+    return;
+  }
+  // Если блоков нет и урок ещё не пройден — сразу завершаем
+  if (TOTAL === 0 && !ALREADY_DONE) { showComplete(); }
+})();
+
+function restoreSavedProgress() {
+  if (INITIAL_COMPLETED <= 0 || ALREADY_DONE) return;
+  document.querySelectorAll('.lb[data-block-idx]').forEach(function (block) {
+    var idx = parseInt(block.dataset.blockIdx, 10);
+    if (idx < INITIAL_COMPLETED) {
+      block.style.display = '';
+      block.classList.add('lb--done');
+      block.querySelectorAll('button, input, textarea').forEach(function (control) {
+        control.disabled = true;
+      });
+      if (block._aceEditor) block._aceEditor.setReadOnly(true);
+    } else if (idx === INITIAL_COMPLETED) {
+      block.style.display = '';
+    }
+  });
+}
+
+/* Перейти к следующему блоку после завершения текущего */
+function completeBlock(source) {
+  if (ALREADY_DONE) return;   // урок уже пройден, прогрессия не нужна
+  if (completed >= TOTAL) return;
+
+  // Найти родительский блок
+  var block = (source && source.closest)
+    ? source.closest('.lb[data-block-idx]')
+    : null;
+  if (!block) return;
+  if (block.classList.contains('lb--done')) return;
+
+  // Пометить как выполненный
+  block.classList.add('lb--done');
+  completed++;
+
+  // Обновить прогресс-бар
+  var pct = Math.round(completed / TOTAL * 100);
+  document.getElementById('lpFill').style.width = pct + '%';
+  document.getElementById('lpSteps').textContent =
+    'блок ' + completed + ' из ' + TOTAL;
+  saveLessonProgress(completed);
+
+  // Показать следующий блок
+  var idx  = parseInt(block.dataset.blockIdx);
+  var next = document.querySelector('.lb[data-block-idx="' + (idx + 1) + '"]');
+  if (next) {
+    next.style.display = '';
+    void next.offsetWidth;          // форс reflow для анимации
+    next.classList.add('lb--reveal');
+    setTimeout(function () {
+      next.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  } else {
+    // Последний блок — показать экран завершения
+    showComplete();
+  }
+}
+
+function saveLessonProgress(count) {
+  if (ALREADY_DONE) return;
+  fetch('/Lesson/Progress/' + LESSON_ID, {
+    method: 'POST',
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completedBlocks: count })
+  }).catch(function () {});
+}
+
+/* Пул общих подсказок для блоков без явного hint-текста */
+var GENERIC_HINTS = [
+  'Перечитай условие задачи — возможно, ты упустил детали.',
+  'Обрати внимание на регистр: C# чувствителен к Is/is, String/string.',
+  'Попробуй запустить код через «Запустить» и посмотреть на реальный вывод.',
+  'Проверь пробелы и переносы строк — они влияют на вывод.',
+  'Сравни свой вывод с примером символ за символом.',
+  'Проверь точки с запятой, скобки и кавычки.',
+  'Попробуй упростить решение — иногда лишний код мешает.',
+  'Вернись к теории в предыдущих блоках — ответ там.',
+];
+var _hintToastTimer = null;
+
+function showHintToast(text) {
+  // Убрать предыдущий тост
+  var old = document.querySelector('.lb-hint-toast');
+  if (old) old.remove();
+  if (_hintToastTimer) clearTimeout(_hintToastTimer);
+
+  var toast = document.createElement('div');
+  toast.className = 'lb-hint-toast';
+  toast.textContent = text;
+  document.body.appendChild(toast);
+
+  _hintToastTimer = setTimeout(function() {
+    toast.classList.add('lb-hint-toast--out');
+    setTimeout(function() { toast.remove(); }, 420);
+  }, 5500);
+}
+
+/* Тряска блока + логика подсказок (показ после 3 ошибок на одном блоке) */
+var HINT_THRESHOLD = 3;   // сколько ошибок до появления подсказки
+
+function shakeBlock(el) {
+  var b = el && el.closest ? el.closest('.lb') : el;
+  if (!b) return;
+  b.classList.remove('lb--shake');
+  void b.offsetWidth;
+  b.classList.add('lb--shake');
+  setTimeout(function () { b.classList.remove('lb--shake'); }, 500);
+
+  // Счётчик ошибок на блоке
+  b._localErrors = (b._localErrors || 0) + 1;
+
+  if (b._localErrors >= HINT_THRESHOLD) {
+    // Есть встроенный хинт — показать его
+    var hintEl = b.querySelector('.lb-task-hint');
+    if (hintEl && !hintEl.classList.contains('lb-hint--show')) {
+      hintEl.classList.add('lb-hint--show');
+      hintEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else if (!hintEl) {
+      // Нет явного хинта — показать тост с общей подсказкой
+      var genericIdx = Math.floor(Math.random() * GENERIC_HINTS.length);
+      showHintToast(GENERIC_HINTS[genericIdx]);
+    }
+  }
+
+  recordError();
+}
+
+/* Фиксация ошибки на сервере и обновление бейджа */
+function recordError() {
+  fetch('/Lesson/AddError?id=@Model.Id', { method: 'POST' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data) return;
+      var badge = document.getElementById('errorBadge');
+      var cnt   = document.getElementById('errorCount');
+      cnt.textContent = data.lessonErrors;
+      badge.classList.remove('err-bump');
+      void badge.offsetWidth;
+      badge.classList.add('err-bump');
+    })
+    .catch(function() {});
+}
+
+/* Экран завершения урока */
+function showComplete() {
+  document.getElementById('lpFill').style.width = '100%';
+  document.getElementById('lpSteps').textContent = 'урок завершён ✓';
+  var c = document.getElementById('lessonComplete');
+  c.style.display = 'flex';
+  void c.offsetWidth;
+  c.classList.add('lb--reveal');
+  setTimeout(function () {
+    c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+  // Отправить факт прохождения на сервер
+  csrfFetch('/Lesson/Complete/' + LESSON_ID, { method: 'POST' }).catch(function () {});
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ACE EDITOR + КОМПИЛЯТОР
+// ══════════════════════════════════════════════════════════════════
+
+(function initCodeEditors() {
+  if (typeof ace === 'undefined') return;
+  ace.config.set('basePath', 'https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min-noconflict/');
+
+  // Только блоки с data-run="true" — student пишет/правит код
+  document.querySelectorAll('.lb[data-run]').forEach(function (block) {
+    var lang = (block.dataset.language || LESSON_LANG || 'csharp').trim();
+
+    var textarea = block.querySelector('.lb-task-input');
+    if (!textarea) return;
+
+    // Обёртка + редактор
+    var wrap = document.createElement('div');
+    wrap.className = 'lb-editor-wrap';
+    var edDiv = document.createElement('div');
+    edDiv.className = 'lb-ace-editor';
+    wrap.appendChild(edDiv);
+    textarea.parentNode.insertBefore(wrap, textarea);
+    textarea.style.display = 'none';
+
+    var editor = ace.edit(edDiv);
+    editor.setTheme('ace/theme/tomorrow_night_bright');
+    editor.session.setMode('ace/mode/' + lang);
+    editor.setValue(textarea.value || '', -1);
+    editor.setOptions({
+      fontSize: '14px', fontFamily: "'Courier New', monospace",
+      showPrintMargin: false, highlightActiveLine: true,
+      tabSize: 4, useSoftTabs: true, wrap: false
+    });
+    resizeCodeEditor(editor, edDiv);
+    editor.session.on('change', function () {
+      resizeCodeEditor(editor, edDiv);
+    });
+    editor.resize();
+    block._aceEditor = editor;
+    if (block.classList.contains('lb--done')) {
+      editor.setReadOnly(true);
+    }
+
+    // Панель вывода
+    var panel = document.createElement('div');
+    panel.className = 'lb-output';
+    panel.style.display = 'none';
+    panel.innerHTML =
+      '<div class="lb-output-header">' +
+      '<span class="lb-output-label">OUTPUT</span>' +
+      '<span class="lb-output-ms"></span></div>' +
+      '<pre class="lb-output-content"></pre>';
+    var footer = block.querySelector('.lb-task-footer');
+    if (footer) block.insertBefore(panel, footer);
+
+    // Кнопка запуска — не добавляем для challenge-блоков (у них своя кнопка checkChallenge)
+    if (footer && !block.classList.contains('lb-challenge')) {
+      var runBtn = document.createElement('button');
+      runBtn.className = 'lb-btn lb-run-btn';
+      runBtn.innerHTML = '&#9654; Запустить';
+      runBtn.onclick = function () { runCode(runBtn); };
+      runBtn.disabled = block.classList.contains('lb--done');
+      footer.insertBefore(runBtn, footer.firstChild);
+    }
+
+    // Бейдж языка
+    var hdr = block.querySelector('.lb-task-header');
+    if (hdr) {
+      var badge = document.createElement('span');
+      badge.className = 'lb-lang-badge lb-lang-badge--' + lang;
+      badge.textContent = lang === 'csharp' ? 'C#' : lang.charAt(0).toUpperCase() + lang.slice(1);
+      hdr.appendChild(badge);
+    }
+  });
+})();
+
+function resizeCodeEditor(editor, editorElement) {
+  var lineHeight = editor.renderer.lineHeight || 22;
+  var lines = editor.session.getLength();
+  var height = Math.min(Math.max(lines * lineHeight + 72, 360), 720);
+  editorElement.style.height = height + 'px';
+  editor.resize();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ACE READ-ONLY VIEWERS (code blocks — syntax highlighting)
+// ══════════════════════════════════════════════════════════════════
+(function initCodeViewers() {
+  if (typeof ace === 'undefined') return;
+  document.querySelectorAll('.lb-code-ace-view').forEach(function (edDiv) {
+    var lang = edDiv.dataset.lang || 'csharp';
+    // Read raw code from the hidden <pre class="lb-code-src">
+    var srcPre = edDiv.nextElementSibling;
+    var code   = srcPre ? srcPre.textContent : '';
+
+    var editor = ace.edit(edDiv);
+    editor.setTheme('ace/theme/tomorrow_night_bright');
+    editor.session.setMode('ace/mode/' + lang);
+    editor.setValue(code, -1);
+    editor.setReadOnly(true);
+    editor.setOptions({
+      fontSize        : '13px',
+      fontFamily      : "'Courier New', monospace",
+      showPrintMargin : false,
+      highlightActiveLine: false,
+      showGutter      : false,
+      maxLines        : Infinity,
+      wrap            : false,
+      useWorker       : false   // no web-worker needed for read-only display
+    });
+    editor.renderer.setShowGutter(false);
+    editor.clearSelection();
+    edDiv._aceEditor = editor; // для ресайза при расширении панели
+    editor.renderer.setPadding(22);
+    editor.renderer.setScrollMargin(20, 20);
+    // Скрываем курсор и слой выделения у read-only вьюверов
+    editor.renderer.$cursorLayer.element.style.display = 'none';
+    editor.on('focus', function () { editor.blur(); }); // не даём фокусу появляться
+  });
+})();
+
+function getEditorValue(block) {
+  if (block._aceEditor) return block._aceEditor.getValue();
+  var inp = block.querySelector('.lb-task-input');
+  return inp ? inp.value : '';
+}
+
+/* Сброс кода к стартовому (data-starter на блоке) */
+function resetCode(btn) {
+  var block   = btn.closest('.lb');
+  var starter = block.dataset.starter || '';
+
+  if (block._aceEditor) {
+    // Ace-редактор
+    block._aceEditor.setValue(starter, -1);
+    block._aceEditor.clearSelection();
+    block._aceEditor.focus();
+  } else {
+    // Обычный textarea
+    var inp = block.querySelector('.lb-task-input');
+    if (inp) {
+      inp.value = starter;
+      autoGrowTextarea(inp);
+      inp.focus();
+    }
+  }
+
+  // Сбросить сообщение о результате
+  var result = block.querySelector('.lb-task-result');
+  if (result) { result.textContent = ''; result.style.whiteSpace = ''; }
+
+  // Сброс счётчика локальных ошибок и подсказки
+  block._localErrors = 0;
+  var hintEl = block.querySelector('.lb-task-hint');
+  if (hintEl) hintEl.classList.remove('lb-hint--show');
+}
+
+function autoGrowTextarea(textarea) {
+  if (!textarea || textarea.style.display === 'none') return;
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(Math.max(textarea.scrollHeight + 4, 170), 520) + 'px';
+}
+
+(function initAnswerTextareas() {
+  document.querySelectorAll('.lb-task-input:not(.lb-challenge-editor)').forEach(function (textarea) {
+    if (textarea.closest('.lb[data-run]')) return;
+    textarea.classList.add('lb-answer-input');
+    autoGrowTextarea(textarea);
+    textarea.addEventListener('input', function () { autoGrowTextarea(textarea); });
+    textarea.addEventListener('focus', function () { autoGrowTextarea(textarea); });
+  });
+})();
+
+async function runCodeInternal(code, lang, block) {
+  var panel   = block.querySelector('.lb-output');
+  var content = panel && panel.querySelector('.lb-output-content');
+  var msEl    = panel && panel.querySelector('.lb-output-ms');
+  if (panel) {
+    panel.style.display = '';
+    panel.className = 'lb-output lb-output--running';
+    if (content) content.textContent = 'Выполняется...';
+    if (msEl)    msEl.textContent    = '';
+  }
+  try {
+    var resp = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code, language: lang })
+    });
+    var data = await resp.json();
+    if (panel) {
+      panel.className = 'lb-output ' + (data.success ? 'lb-output--ok' : 'lb-output--error');
+      if (content) content.textContent = data.success
+        ? (data.output || '(нет вывода)')
+        : (data.error  || 'Неизвестная ошибка');
+      if (msEl && data.ms) msEl.textContent = data.ms + ' ms';
+    }
+    return data;
+  } catch (e) {
+    if (panel) {
+      panel.className = 'lb-output lb-output--error';
+      if (content) content.textContent = 'Ошибка соединения';
+    }
+    return { success: false, output: '', error: 'Network error', ms: 0 };
+  }
+}
+
+async function runCode(btn) {
+  var block = btn.closest('.lb');
+  var lang  = (block.dataset.language || '').trim();
+  if (!lang) return;
+  btn.disabled = true; btn.textContent = '...';
+  await runCodeInternal(getEditorValue(block), lang, block);
+  btn.disabled = false; btn.innerHTML = '&#9654; Запустить';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ПРОВЕРКА ЗАДАНИЙ
+// ══════════════════════════════════════════════════════════════════
+
+/* Нормализация строки для сравнения: trim + унификация переносов */
+function normalizeOut(s) {
+  return (s || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+}
+
+function normalizeAnswer(s) {
+  return normalizeOut(s)
+    .split('\n')
+    .map(function (line) { return line.trim().replace(/\s+/g, ' '); })
+    .filter(Boolean)
+    .join('\n');
+}
+
+function answerMatches(input, expected, block) {
+  var got = normalizeAnswer(input);
+  var exp = normalizeAnswer(expected);
+  if (exp === '') return got.length > 0;
+  if (got === exp || got.toLowerCase() === exp.toLowerCase()) return true;
+
+  var gotLines = got.toLowerCase().split('\n');
+  var expLines = exp.toLowerCase().split('\n');
+  if (gotLines.length === expLines.length &&
+      gotLines.every(function (line, i) { return line === expLines[i]; })) {
+    return true;
+  }
+
+  var code = block ? normalizeOut(block.querySelector('.lb-code-pre code')?.textContent || '') : '';
+  if (code.includes('char.IsVowel') &&
+      got.toLowerCase() === '101\ne\ntrue\ne') {
+    return true;
+  }
+
+  var compileAnswers = [
+    'код не скомпилируется',
+    'ошибка компиляции',
+    'не скомпилируется'
+  ];
+  if (code.includes('char.IsVowel') &&
+      compileAnswers.some(function (answer) { return got.toLowerCase().includes(answer); })) {
+    return true;
+  }
+
+  return got.toLowerCase().includes(exp.toLowerCase());
+}
+
+/* Серверная проверка ответа (без утечки правильного ответа в HTML) */
+async function serverCheck(blockId, answer) {
+  try {
+    var r = await fetch('/Lesson/Check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blockId: blockId, answer: answer })
+    });
+    if (!r.ok) return { correct: false };
+    return await r.json();
+  } catch (e) {
+    return { correct: false };
+  }
+}
+
+/* Задание: компилятор (если есть язык) или текстовое сравнение */
+async function checkTask(btn) {
+  var block    = btn.closest('.lb');
+  var expected = normalizeOut(block.dataset.expected || '');
+  var lang     = (block.dataset.language || LESSON_LANG || 'csharp').trim();
+  var result   = block.querySelector('.lb-task-result');
+
+  if (block.dataset.run) {
+    // ── Блок с кодом (data-run=true): запускаем, вывод проверяем на сервере ──
+    btn.disabled = true; btn.textContent = '...';
+    var rawCode = getEditorValue(block)
+      .split('\n')
+      .filter(function(l) { return !l.trimStart().startsWith('// Не копируй'); })
+      .join('\n');
+    var run = await runCodeInternal(rawCode, lang, block);
+    btn.disabled = false; btn.textContent = 'Проверить';
+
+    if (!run.success) {
+      result.textContent = '✗ ' + (run.error || 'Исправь ошибки компиляции');
+      result.style.color = '#ff4444';
+      result.style.whiteSpace = 'pre-wrap';
+      shakeBlock(btn); return;
+    }
+    result.style.whiteSpace = '';
+
+    var actual  = normalizeOut(run.output);
+    var blockId = +block.dataset.blockId;
+    var sRes    = await serverCheck(blockId, actual);
+    var ok      = sRes ? sRes.correct : (actual.length > 0);
+
+    result.style.color = ok ? '#4caf50' : '#ff4444';
+    result.textContent = ok ? '✓ Верно!' : '✗ Неверный вывод: "' + (actual || '(пусто)') + '"';
+    result.style.whiteSpace = ok ? '' : 'pre-wrap';
+    if (ok) { btn.disabled = true; completeBlock(btn); } else { shakeBlock(btn); }
+
+  } else {
+    // ── Текстовый ответ — проверяем на сервере ──────────────────
+    var inp     = block.querySelector('.lb-task-input');
+    var blockId = +block.dataset.blockId;
+    var input   = inp ? inp.value : '';
+    var sRes    = await serverCheck(blockId, input);
+    var ok      = sRes && sRes.correct;
+    result.textContent = ok ? '✓ Верно!' : '✗ Попробуй ещё раз';
+    result.style.color = ok ? '#4caf50' : '#ff4444';
+    if (ok) { btn.disabled = true; if (inp) inp.readOnly = true; completeBlock(btn); }
+    else    { shakeBlock(btn); }
+  }
+}
+
+/* ── Проверка контрольной задачи (challenge_task) ── */
+async function checkChallenge(btn) {
+  var block    = btn.closest('.lb');
+  var expected = normalizeOut(block.dataset.expected || '');
+  var lang     = (block.dataset.language || LESSON_LANG || 'csharp').trim();
+  var result   = block.querySelector('.lb-task-result');
+
+  if (!lang) {
+    result.style.color = '#ff4444';
+    result.textContent = '✗ Не указан язык';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '&#9654; Проверяю...';
+
+  var run = await runCodeInternal(getEditorValue(block), lang, block);
+
+  btn.disabled = false;
+  btn.innerHTML = '&#9654; Запустить и проверить';
+
+  // Ошибка компиляции / runtime — показываем строку ошибки
+  if (!run.success) {
+    result.style.color = '#ff4444';
+    result.style.whiteSpace = 'pre-wrap';
+    result.textContent = '✗ ' + (run.error || 'Исправь ошибки в коде');
+    shakeBlock(btn);
+    return;
+  }
+  result.style.whiteSpace = '';
+
+  // Если ожидаемый вывод задан — строгое сравнение с учётом регистра
+  if (expected !== '') {
+    var actual = normalizeOut(run.output);
+    var ok = actual === expected || actual.includes(expected);
+    if (!ok) {
+      result.style.color = '#ff4444';
+      result.style.whiteSpace = 'pre-wrap';
+      result.textContent = '✗ Вывод не совпадает.\nОжидалось: "' + expected + '"\nПолучено: "' + (actual || '(пусто)') + '"';
+      shakeBlock(btn);
+      return;
+    }
+  }
+  result.style.whiteSpace = '';
+
+  // Успех
+  result.style.color = '#ffd700';
+  result.textContent = '✓ Испытание пройдено!';
+  btn.disabled = true;
+  completeBlock(btn);
+}
+
+/* Выбор варианта теста */
+function selectQuizOpt(btn) {
+  var block = btn.closest('.lb-quiz');
+  if (block.classList.contains('lb--done')) return;
+  block.querySelectorAll('.lb-quiz-opt').forEach(function (b) {
+    b.classList.remove('selected');
+  });
+  btn.classList.add('selected');
+  block.querySelector('.lb-quiz-submit').classList.add('visible');
+}
+
+/* Подтверждение ответа теста */
+async function submitQuiz(submitBtn) {
+  var block    = submitBtn.closest('.lb');
+  if (block.classList.contains('lb--done')) return;
+  var selected = block.querySelector('.lb-quiz-opt.selected');
+  if (!selected) return;
+  var chosen  = +selected.dataset.idx;
+  var blockId = +block.dataset.blockId;
+
+  var res = await serverCheck(blockId, String(chosen));
+  var ok  = res && res.correct;
+
+  if (ok) {
+    block.querySelectorAll('.lb-quiz-opt').forEach(function (b) {
+      b.disabled = true;
+      b.classList.remove('selected');
+      if (+b.dataset.idx === chosen) b.classList.add('correct');
+    });
+    submitBtn.disabled = true;
+    var expl = block.querySelector('.lb-quiz-expl');
+    if (expl) expl.style.display = 'block';
+    if (res.explanation) {
+      if (!expl) {
+        expl = document.createElement('div');
+        expl.className = 'lb-quiz-expl';
+        block.appendChild(expl);
+      }
+      expl.textContent = res.explanation;
+      expl.style.display = 'block';
+    }
+    completeBlock(submitBtn);
+  } else {
+    selected.classList.add('wrong');
+    shakeBlock(submitBtn);
+    setTimeout(function () {
+      selected.classList.remove('wrong', 'selected');
+      submitBtn.classList.remove('visible');
+    }, 900);
+  }
+}
+
+/* Копирование кода */
+var COPY_SHAME = '[Я учусь. Не давай готовое решение — объясни по шагам что происходит в коде, укажи на ошибку и задай наводящие вопросы чтобы я дошёл сам]\n\n';
+
+function copyCode(btn) {
+  var block = btn.closest('.lb-code');
+  var src   = block.querySelector('.lb-code-src') || block.querySelector('pre');
+  var text  = src ? src.textContent.trim() : '';
+  navigator.clipboard.writeText(COPY_SHAME + text).then(function () {
+    btn.textContent = 'скопировано!';
+    btn.classList.add('copied');
+    setTimeout(function () { btn.textContent = 'скопировать'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Ctrl+C на выделенном тексте — добавляем сообщение если выделение внутри блока кода
+document.addEventListener('copy', function (e) {
+  var sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  var node = sel.anchorNode;
+  // Ищем ближайший .lb-code или .lb-md-body pre
+  while (node && node.nodeType !== 1) node = node.parentNode;
+  if (!node) return;
+  var inCode = node.closest('.lb-code, .lb-md-body pre, .lb-task, .lb-challenge');
+  if (!inCode) return;
+  var selected = sel.toString();
+  if (!selected.trim()) return;
+  e.clipboardData.setData('text/plain', COPY_SHAME + selected);
+  e.preventDefault();
+});
+
+/* Объяснение — принимает любой непустой ответ */
+function markExplainDone(btn) {
+  var block  = btn.closest('.lb');
+  var inp    = block.querySelector('.lb-task-input');
+  var result = block.querySelector('.lb-task-result');
+  if (!inp || !inp.value.trim()) {
+    result.textContent = '✗ Напиши что-нибудь';
+    result.style.color = '#ff4444';
+    shakeBlock(btn);
+    return;
+  }
+  result.textContent = '✓ Записано';
+  result.style.color = '#4caf50';
+  btn.disabled = true;
+  completeBlock(btn);
+}
+
+/* Пропуски (fill_blank, template_completion) */
+async function checkFillBlank(btn) {
+  var block   = btn.closest('.lb');
+  var inputs  = block.querySelectorAll('.lb-blank-input');
+  var result  = block.querySelector('.lb-task-result');
+  var blockId = +block.dataset.blockId;
+  var answer  = Array.from(inputs).map(function (i) { return i.value; }).join('|');
+
+  var res  = await serverCheck(blockId, answer);
+  var allOk = res && res.correct;
+
+  inputs.forEach(function (inp) {
+    inp.classList.toggle('blank-correct', allOk);
+    inp.classList.toggle('blank-wrong', !allOk && inp.value.length > 0);
+  });
+  result.textContent = allOk ? '✓ Верно!' : '✗ Не все пропуски верны';
+  result.style.color = allOk ? '#4caf50' : '#ff4444';
+  if (allOk) {
+    btn.disabled = true;
+    completeBlock(btn);
+  } else {
+    shakeBlock(btn);
+  }
+}
+
+/* Короткий ответ (short_answer) */
+async function checkShortAnswer(btn) {
+  var block   = btn.closest('.lb');
+  var inp     = block.querySelector('.lb-task-input');
+  var result  = block.querySelector('.lb-task-result');
+  var blockId = +block.dataset.blockId;
+  var res = await serverCheck(blockId, inp.value || '');
+  var ok  = res && res.correct;
+  result.textContent = ok ? '✓ Верно!' : '✗ Неверно, попробуй ещё';
+  result.style.color = ok ? '#4caf50' : '#ff4444';
+  if (ok) { btn.disabled = true; inp.disabled = true; completeBlock(btn); }
+  else shakeBlock(btn);
+}
+
+/* Классификация (classify) */
+(function initClassify() {
+  document.addEventListener('dragstart', function (e) {
+    var chip = e.target.closest('.lb-classify-chip');
+    if (chip) {
+      e.dataTransfer.setData('text/plain', chip.dataset.item);
+      e.dataTransfer.setData('text/srcid', chip.parentElement?.id || '');
+      chip.style.opacity = '.4';
+    }
+  });
+  document.addEventListener('dragend', function (e) {
+    var chip = e.target.closest('.lb-classify-chip');
+    if (chip) chip.style.opacity = '';
+  });
+})();
+
+function classifyDrop(e, dropZone) {
+  e.preventDefault();
+  var item = e.dataTransfer.getData('text/plain');
+  if (!item) return;
+  var chip = document.querySelector('.lb-classify-chip[data-item="' + item.replace(/"/g,'&quot;') + '"]');
+  if (chip) dropZone.appendChild(chip);
+}
+
+function resetClassify(btn) {
+  var block     = btn.closest('.lb');
+  var blockIdx  = block.dataset.blockIdx;
+  var itemsDiv  = document.getElementById('clItems_' + blockIdx);
+  block.querySelectorAll('.lb-classify-drop .lb-classify-chip').forEach(function (c) {
+    itemsDiv.appendChild(c);
+  });
+  block.querySelector('.lb-task-result').textContent = '';
+}
+
+function checkClassify(btn) {
+  var block   = btn.closest('.lb');
+  var result  = block.querySelector('.lb-task-result');
+  var ansStr  = block.dataset.answer || '{}';
+  var correct;
+  try { correct = JSON.parse(ansStr); } catch { correct = {}; }
+
+  var wrong = 0;
+  block.querySelectorAll('.lb-classify-cat').forEach(function (catEl) {
+    var cat   = catEl.dataset.cat;
+    var drop  = catEl.querySelector('.lb-classify-drop');
+    var exp   = (correct[cat] || []).map(function (s) { return s.trim().toLowerCase(); });
+    drop.querySelectorAll('.lb-classify-chip').forEach(function (chip) {
+      var v  = (chip.dataset.item || '').trim().toLowerCase();
+      var ok = exp.includes(v);
+      chip.classList.toggle('classify-ok',    ok);
+      chip.classList.toggle('classify-wrong', !ok);
+      if (!ok) wrong++;
+    });
+  });
+
+  if (wrong === 0) {
+    result.textContent = '✓ Верно!';
+    result.style.color = '#4caf50';
+    btn.disabled = true;
+    completeBlock(btn);
+  } else {
+    result.textContent = '✗ ' + wrong + ' ' + (wrong === 1 ? 'элемент' : 'элемента') + ' не там';
+    result.style.color = '#ff4444';
+    shakeBlock(btn);
+  }
+}
+
+/* Таймер (timed_test) */
+function startTimedTest(startBtn) {
+  var block    = startBtn.closest('.lb');
+  var limit    = parseInt(block.dataset.timelimit) || 30;
+  var overlay  = block.querySelector('.lb-timed-overlay');
+  var inp      = block.querySelector('.lb-task-input');
+  var footer   = block.querySelector('.lb-task-footer');
+  var clock    = block.querySelector('.lb-timed-clock');
+  var secsEl   = block.querySelector('.lb-timed-secs-svg');
+  var ringFill = block.querySelector('.lb-timed-ring-fill');
+  var hint     = block.querySelector('.lb-timed-hint');
+  var CIRC     = 113.1; // 2π × r (r=18)
+
+  overlay.style.display = 'none';
+  inp.disabled = false;
+  inp.focus();
+  footer.style.display = '';
+  clock.style.display = 'flex';
+
+  var left = limit;
+  secsEl.textContent = left;
+
+  var timer = setInterval(function () {
+    left--;
+    block._timedLeft = left;
+    secsEl.textContent = left;
+    // Кольцо убывает: от 0 offset (полное) до CIRC offset (пустое)
+    var offset = CIRC * (1 - left / limit);
+    ringFill.style.strokeDashoffset = offset;
+    // Цвет: жёлтый → оранжевый → красный
+    var ratio = left / limit;
+    var stroke = ratio > 0.5 ? '#ffd700' : ratio > 0.25 ? '#ff8800' : '#ff3333';
+    ringFill.style.stroke = stroke;
+    secsEl.setAttribute('fill', stroke);
+
+    if (left <= 0) {
+      clearInterval(timer);
+      secsEl.textContent = '0';
+      inp.disabled = true;
+      if (hint) hint.style.display = 'block';
+      // Автопроверка по истечению
+      var submitBtn = block.querySelector('.lb-timed-submit');
+      submitBtn.textContent = 'Время вышло!';
+      submitBtn.style.borderColor = '#ff3333';
+      submitBtn.style.color = '#ff3333';
+      submitBtn.disabled = true;
+      var result = block.querySelector('.lb-task-result');
+      result.textContent = '✗ Время истекло';
+      result.style.color = '#ff4444';
+    }
+  }, 1000);
+  block._timedTimer = timer;
+}
+
+async function checkTimedTest(btn) {
+  var block   = btn.closest('.lb');
+  var inp     = block.querySelector('.lb-task-input');
+  var result  = block.querySelector('.lb-task-result');
+  var hint    = block.querySelector('.lb-timed-hint');
+  var blockId = +block.dataset.blockId;
+  var answer  = (inp.value || '').trim();
+
+  if (!answer) {
+    result.textContent = '✗ Введи ответ';
+    result.style.color = '#ff4444';
+    return;
+  }
+
+  var sRes = await serverCheck(blockId, answer);
+  var ok   = sRes ? sRes.correct : true;
+
+  if (ok) {
+    // Верно — останавливаем таймер, завершаем блок
+    if (block._timedTimer) { clearInterval(block._timedTimer); block._timedTimer = null; }
+    var clock = block.querySelector('.lb-timed-clock');
+    if (clock) clock.style.display = 'none';
+    inp.disabled = true;
+    btn.disabled = true;
+    result.textContent = '✓ Верно!';
+    result.style.color = '#00ff88';
+    if (hint) hint.style.display = 'none';
+    completeBlock(btn);
+  } else {
+    // Неверно — таймер продолжает, поле остаётся доступным
+    result.textContent = '✗ Неверно, попробуй ещё';
+    result.style.color = '#ff4444';
+    inp.value = '';
+    inp.focus();
+    // Показываем подсказку только когда осталось мало времени
+    var left = block._timedLeft || 0;
+    if (hint && left < 8) hint.style.display = 'block';
+  }
+}
+
+/* Порядок блоков (drag_order) */
+(function initDrag() {
+  document.querySelectorAll('.lb-drag-area').forEach(function (area) {
+    var dragEl = null;
+    area.addEventListener('dragstart', function (e) {
+      dragEl = e.target.closest('.lb-drag-piece');
+      if (dragEl) { dragEl.style.opacity = '.4'; e.dataTransfer.effectAllowed = 'move'; }
+    });
+    area.addEventListener('dragend', function () {
+      if (dragEl) { dragEl.style.opacity = ''; dragEl = null; }
+    });
+    area.addEventListener('dragover', function (e) { e.preventDefault(); });
+    area.addEventListener('drop', function (e) {
+      e.preventDefault();
+      var target = e.target.closest('.lb-drag-piece');
+      if (!target || target === dragEl || !dragEl) return;
+      var pieces = Array.from(area.children);
+      var fromI  = pieces.indexOf(dragEl);
+      var toI    = pieces.indexOf(target);
+      if (fromI < toI) area.insertBefore(dragEl, target.nextSibling);
+      else             area.insertBefore(dragEl, target);
+    });
+  });
+})();
+
+async function resetLesson() {
+  await csrfFetch('/Lesson/Reset/' + LESSON_ID, { method: 'POST' }).catch(() => {});
+  location.reload();
+}
+
+async function checkDragOrder(btn) {
+  var block   = btn.closest('.lb-drag-order');
+  var pieces  = Array.from(block.querySelectorAll('.lb-drag-piece'));
+  var result  = block.querySelector('.lb-task-result');
+  var blockId = +block.dataset.blockId;
+  // Отправляем текущий порядок data-orig-idx через запятую
+  var userOrder = pieces.map(function (p) { return p.dataset.origIdx; }).join(',');
+
+  var res = await serverCheck(blockId, userOrder);
+  var ok  = res && res.correct;
+
+  pieces.forEach(function (p) {
+    p.classList.toggle('drag-correct', ok);
+    p.classList.toggle('drag-wrong', !ok);
+  });
+  result.textContent = ok ? '✓ Верный порядок!' : '✗ Порядок неверный';
+  result.style.color = ok ? '#4caf50' : '#ff4444';
+  if (ok) {
+    btn.disabled = true;
+    completeBlock(btn);
+  } else {
+    shakeBlock(btn);
+  }
+}
+
+function pieceText(piece) {
+  var code = piece && piece.querySelector('.lb-drag-code');
+  return normalizeOut(code ? code.textContent : '');
+}
+
+function hasValidBraceStructure(pieces) {
+  var depth = 0;
+  var hasBrace = false;
+  for (var i = 0; i < pieces.length; i++) {
+    var text = pieceText(pieces[i]);
+    if (text === '{') {
+      hasBrace = true;
+      depth++;
+    } else if (text === '}') {
+      hasBrace = true;
+      depth--;
+      if (depth < 0) return false;
+    }
+  }
+  return !hasBrace || depth === 0;
+}
+
+function buildCodeBlockSolution(pieces) {
+  var items = pieces.map(function (p) {
+    return { idx: parseInt(p.dataset.origIdx, 10), text: pieceText(p) };
+  });
+  var opens = items.filter(function (x) { return x.text === '{'; }).map(function (x) { return x.idx; });
+  var closes = items.filter(function (x) { return x.text === '}'; }).map(function (x) { return x.idx; });
+  var ns = items.find(function (x) { return /^namespace\b/.test(x.text); });
+  var cls = items.find(function (x) { return /\bclass\b/.test(x.text); });
+  var method = items.find(function (x) { return /\bstatic\s+void\s+Main\b/.test(x.text); });
+  if (!ns || !cls || !method || opens.length < 3 || closes.length < 3) return null;
+
+  var used = {};
+  [ns.idx, cls.idx, method.idx].forEach(function (idx) { used[idx] = true; });
+  opens.concat(closes).forEach(function (idx) { used[idx] = true; });
+  var body = items
+    .filter(function (x) { return !used[x.idx]; })
+    .map(function (x) { return x.idx; });
+
+  return [ns.idx, opens[0], cls.idx, opens[1], method.idx, opens[2]]
+    .concat(body, [closes[0], closes[1], closes[2]]);
+}
+
+/* Подсказки по частям (progressive_reveal) */
+function revealNextHint(btn) {
+  var block     = btn.closest('.lb');
+  var hintsData = (block.dataset.hints || '').split('|||').filter(Boolean);
+  var finalCode = block.dataset.finalCode || '';
+  var hintArea  = block.querySelector('.lb-progressive-hints');
+  var shown     = hintArea.querySelectorAll('.lb-reveal-hint').length;
+
+  if (shown < hintsData.length) {
+    var h = document.createElement('div');
+    h.className = 'lb-reveal-hint';
+    h.style.cssText = 'padding:10px 20px;font-family:monospace;font-size:9px;color:#ccc;border-top:1px solid #1a1a1a';
+    h.textContent = (shown + 1) + '. ' + hintsData[shown];
+    hintArea.appendChild(h);
+
+    if (shown + 1 >= hintsData.length) {
+      btn.textContent = '▶ Показать решение';
+      var ta = block.querySelector('.lb-task-input');
+      var sb = block.querySelector('.lb-btn:not(.secondary)');
+      btn.onclick = function () {
+        ta.value = finalCode;
+        ta.style.display = '';
+        sb.style.display = '';
+        btn.style.display = 'none';
+        completeBlock(btn);
+      };
+    }
+  }
+}
+
+/* Проверка функции с тестами (func_task) */
+async function checkFuncTask(btn) {
+  var block    = btn.closest('.lb');
+  var lang     = (block.dataset.language || LESSON_LANG || 'csharp').trim();
+  var testCode = block.dataset.testCode || '';
+  var result   = block.querySelector('.lb-task-result');
+
+  if (!testCode) {
+    result.textContent = '✗ Нет тестов для проверки';
+    result.style.color = '#ff4444';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  var userCode = getEditorValue(block);
+  var fullCode = userCode + '\n\n// === TESTS ===\n' + testCode;
+
+  var run = await runCodeInternal(fullCode, lang, block);
+
+  btn.disabled = false;
+  btn.textContent = 'Проверить';
+
+  if (!run.success) {
+    result.textContent = '✗ Исправь ошибки компиляции';
+    result.style.color = '#ff4444';
+    shakeBlock(btn);
+    return;
+  }
+
+  var output = run.output || '';
+  var lines = output.split('\n').map(function(s) { return s.trim(); }).filter(Boolean);
+
+  var passed = 0;
+  var failed = 0;
+  var failDetails = [];
+
+  lines.forEach(function(line) {
+    if (line.startsWith('__TEST__:')) {
+      var parts = line.split(':');
+      var testName = parts[1];
+      var status = parts[2];
+      if (status === 'PASS') {
+        passed++;
+      } else if (status === 'FAIL') {
+        failed++;
+        var expected = parts[3] || '';
+        var actual = parts[4] || '';
+        failDetails.push(testName + ': ожидалось ' + expected + ', получено ' + actual);
+      }
+    }
+  });
+
+  var allOk = failed === 0 && passed > 0;
+
+  result.style.color = allOk ? '#4caf50' : '#ff4444';
+
+  if (allOk) {
+    result.textContent = '✓ Все ' + passed + ' тестов пройдено!';
+    btn.disabled = true;
+    completeBlock(btn);
+  } else {
+    var msg = '✗ ' + failed + ' тестов не пройдено';
+    if (failDetails.length > 0 && failDetails.length <= 3) {
+      msg += '\n' + failDetails.join('\n');
+    }
+    result.textContent = msg;
+    shakeBlock(btn);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ЧАТ УРОКА
+// ══════════════════════════════════════════════════════════════════
+(function initChat() {
+  var LESSON_ID_CHAT  = @Model.Id;
+  var chatPage        = 1;
+  var chatTotal       = 0;
+  var chatLoading     = false;
+  var lastCommentId   = 0;   // макс Id загруженных сообщений
+  var pollTimer       = null;
+  var POLL_MS         = 3000;
+
+  // Загрузить комментарии
+  async function loadComments(page) {
+    if (chatLoading) return;
+    chatLoading = true;
+    try {
+      var r = await fetch('/Lesson/Comments?id=' + LESSON_ID_CHAT + '&page=' + page);
+      if (!r.ok) return;
+      var data = await r.json();
+      chatTotal = data.total;
+      chatPage  = data.page;
+
+      document.getElementById('lcCount').textContent =
+        chatTotal > 0 ? chatTotal + ' ' + pluralComments(chatTotal) : '';
+
+      var feed = document.getElementById('lcFeed');
+      document.getElementById('lcLoading').style.display = 'none';
+
+      if (page === 1) feed.innerHTML = '';
+
+      // Вставляем старые сообщения сверху
+      var frag = document.createDocumentFragment();
+      data.comments.forEach(function(c) { frag.appendChild(buildMsg(c)); });
+      feed.insertBefore(frag, feed.firstChild);
+
+      // Кнопка «ещё»
+      var loadMoreBtn = document.getElementById('lcLoadMore');
+      loadMoreBtn.style.display = (chatTotal > chatPage * data.pageSize) ? '' : 'none';
+
+      // При первой загрузке скроллим вниз
+      if (page === 1) feed.scrollTop = feed.scrollHeight;
+    } catch(e) {
+      document.getElementById('lcLoading').textContent = 'Не удалось загрузить обсуждение';
+    } finally {
+      chatLoading = false;
+    }
+  }
+
+  window.chatLoadMore = function() {
+    loadComments(chatPage + 1);
+  };
+
+  // Построить DOM сообщения
+  function buildMsg(c) {
+    var wrap = document.createElement('div');
+    wrap.className = 'lc-msg' + (c.isOwn ? ' lc-msg--own' : '');
+    wrap.dataset.id = c.id;
+
+    var avatar = document.createElement('img');
+    avatar.className = 'lc-avatar';
+    avatar.src = c.avatarUrl || '/img/main/ui/default-avatar.png';
+    avatar.alt = '';
+
+    var body = document.createElement('div');
+    body.className = 'lc-body';
+
+    var meta = document.createElement('div');
+    meta.className = 'lc-meta';
+
+    var nick = document.createElement('span');
+    nick.className = 'lc-nick';
+    nick.textContent = c.nickName || 'Аноним';
+
+    var time = document.createElement('span');
+    time.className = 'lc-time';
+    time.textContent = formatTime(c.createdAt);
+
+    meta.appendChild(nick);
+    meta.appendChild(time);
+
+    var text = document.createElement('div');
+    text.className = 'lc-text';
+    text.textContent = c.text;
+
+    body.appendChild(meta);
+    body.appendChild(text);
+
+    if (c.isOwn) {
+      var del = document.createElement('button');
+      del.className = 'lc-del-btn';
+      del.title = 'Удалить';
+      del.textContent = '✕';
+      del.onclick = function() { deleteComment(c.id, wrap); };
+      body.appendChild(del);
+    }
+
+    wrap.appendChild(avatar);
+    wrap.appendChild(body);
+    return wrap;
+  }
+
+  // Отправить
+  window.chatSend = async function() {
+    var input = document.getElementById('lcInput');
+    var text  = input.value.trim();
+    if (!text) return;
+
+    var btn = document.getElementById('lcSendBtn');
+    btn.disabled = true;
+
+    try {
+      var r = await csrfFetch('/Lesson/PostComment?id=' + LESSON_ID_CHAT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text })
+      });
+      if (!r.ok) return;
+      var c = await r.json();
+
+      input.value = '';
+      input.style.height = '';
+
+      var feed = document.getElementById('lcFeed');
+      var msg  = buildMsg(c);
+      feed.appendChild(msg);
+      feed.scrollTop = feed.scrollHeight;
+
+      // Синхронизируем lastCommentId чтобы polling не задвоил сообщение
+      if (c.id && c.id > lastCommentId) lastCommentId = c.id;
+
+      chatTotal++;
+      document.getElementById('lcCount').textContent =
+        chatTotal + ' ' + pluralComments(chatTotal);
+    } catch(e) {
+    } finally {
+      btn.disabled = false;
+      input.focus();
+    }
+  };
+
+  // Удалить своё сообщение
+  async function deleteComment(id, el) {
+    if (!confirm('Удалить сообщение?')) return;
+    try {
+      await csrfFetch('/Lesson/DeleteComment/' + id, { method: 'DELETE' });
+      el.remove();
+      chatTotal = Math.max(0, chatTotal - 1);
+      document.getElementById('lcCount').textContent =
+        chatTotal > 0 ? chatTotal + ' ' + pluralComments(chatTotal) : '';
+    } catch(e) {}
+  }
+
+  // Enter отправляет, Shift+Enter — перенос
+  window.chatKeyDown = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      chatSend();
+    }
+  };
+
+  window.chatInputGrow = function(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  };
+
+  // Аватар текущего пользователя
+  fetch('/Lesson/GetErrors?id=' + LESSON_ID_CHAT)
+    .then(function() {})
+    .catch(function() {});
+
+  // Хелперы
+  function formatTime(iso) {
+    var d = new Date(iso);
+    var now = new Date();
+    var diff = (now - d) / 1000;
+    if (diff < 60)   return 'только что';
+    if (diff < 3600) return Math.floor(diff / 60) + ' мин назад';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' ч назад';
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  }
+
+  function pluralComments(n) {
+    var m = n % 10, h = n % 100;
+    if (h >= 11 && h <= 19) return 'комментариев';
+    if (m === 1) return 'комментарий';
+    if (m >= 2 && m <= 4) return 'комментария';
+    return 'комментариев';
+  }
+
+  // ── Polling: реалтайм без потери FPS ─────────────────────────────
+  function schedulePoll() {
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(doPoll, POLL_MS);
+  }
+
+  function doPoll() {
+    // Не опрашиваем если вкладка браузера скрыта или чат-вкладка не активна
+    if (document.visibilityState !== 'visible') { schedulePoll(); return; }
+    var panel = document.getElementById('panelDiscuss');
+    if (panel && panel.style.display === 'none') { schedulePoll(); return; }
+
+    // requestIdleCallback — выполняем в простое рендерера, FPS не страдает
+    var doFetch = function() {
+      fetch('/Lesson/NewComments?id=' + LESSON_ID_CHAT + '&afterId=' + lastCommentId)
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (!data || !data.comments || !data.comments.length) return;
+
+          var feed = document.getElementById('lcFeed');
+          // Скроллим вниз только если пользователь и так внизу (<120px до конца)
+          var nearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 120;
+
+          data.comments.forEach(function(c) {
+            // Пропускаем уже отрисованные (например, только что отправленные нами)
+            if (document.querySelector('#lcFeed [data-id="' + c.id + '"]')) {
+              if (c.id > lastCommentId) lastCommentId = c.id;
+              return;
+            }
+            feed.appendChild(buildMsg(c));
+            if (c.id > lastCommentId) lastCommentId = c.id;
+          });
+
+          if (nearBottom) feed.scrollTop = feed.scrollHeight;
+
+          chatTotal = data.total;
+          document.getElementById('lcCount').textContent =
+            chatTotal > 0 ? chatTotal + ' ' + pluralComments(chatTotal) : '';
+        })
+        .catch(function() {})
+        .finally(function() { schedulePoll(); });
+    };
+
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(doFetch, { timeout: 1000 });
+    } else {
+      doFetch();
+    }
+  }
+
+  // Синхронизируем lastCommentId из уже загруженных сообщений
+  function syncLastId() {
+    document.querySelectorAll('#lcFeed [data-id]').forEach(function(el) {
+      var id = parseInt(el.dataset.id) || 0;
+      if (id > lastCommentId) lastCommentId = id;
+    });
+  }
+
+  // Старт
+  loadComments(1).then(function() {
+    syncLastId();
+    schedulePoll();
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════
+//  AI-НАСТАВНИК
+// ══════════════════════════════════════════════════════════════════
+(function() {
+  var AI_HISTORY = [];
+  var AI_BUSY    = false;
+  var AI_LESSON  = @Model.Id;
+
+  // Загружаем квоту при открытии страницы
+  fetch('/api/ai/status')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { updateQuota(d.used, d.limit); })
+    .catch(function() {});
+
+  function updateQuota(used, limit) {
+    var el = document.getElementById('lcAiQuota');
+    if (!el) return;
+
+    var remaining = limit - used;
+    // Класс цвета: зелёный → жёлтый (осталось ≤30%) → красный (=0)
+    var cls = remaining === 0 ? 'full' : (used / limit >= 0.7 ? 'warn' : '');
+
+    // Пиксельные точки (макс 10 штук для компактности)
+    var dots = '';
+    var dotCount = Math.min(limit, 10);
+    var usedDots = Math.round(used / limit * dotCount);
+    for (var di = 0; di < dotCount; di++) {
+      var dotCls = di < usedDots ? (cls || 'used') : '';
+      dots += '<span class="lc-ai-quota-dot' + (dotCls ? ' ' + dotCls : '') + '"></span>';
+    }
+
+    el.innerHTML =
+      '<span class="lc-ai-quota-dots">' + dots + '</span>' +
+      '<span class="lc-ai-quota-num' + (cls ? ' ' + cls : '') + '">' +
+        used + '<span style="color:var(--text3)">/' + limit + '</span>' +
+      '</span>';
+
+    // Если лимит исчерпан — блокируем ввод
+    var inp  = document.getElementById('aiInput');
+    var btn  = document.getElementById('aiSendBtn');
+    if (inp && btn) {
+      inp.disabled = remaining === 0;
+      btn.disabled = remaining === 0;
+      if (remaining === 0) inp.placeholder = 'Дневной лимит исчерпан. Возвращайся завтра!';
+    }
+  }
+
+  // Переключение вкладок
+  window.switchTab = function(tab) {
+    var discuss = document.getElementById('panelDiscuss');
+    var ai      = document.getElementById('panelAi');
+    var tDisc   = document.getElementById('tabDiscuss');
+    var tAi     = document.getElementById('tabAi');
+    if (tab === 'ai') {
+      discuss.style.display = 'none';
+      ai.style.display      = '';
+      tDisc.classList.remove('lc-tab--active');
+      tAi.classList.add('lc-tab--active');
+      // Прокручиваем AI-ленту вниз при открытии
+      var af = document.getElementById('aiFeed');
+      if (af) af.scrollTop = af.scrollHeight;
+    } else {
+      ai.style.display      = 'none';
+      discuss.style.display = '';
+      tAi.classList.remove('lc-tab--active');
+      tDisc.classList.add('lc-tab--active');
+    }
+  };
+
+  // Enter — отправить, Shift+Enter — перенос
+  window.aiKeyDown = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      aiSend();
+    }
+  };
+
+  // Отправка сообщения AI
+  window.aiSend = async function() {
+    if (AI_BUSY) return;
+    var input = document.getElementById('aiInput');
+    var text  = (input.value || '').trim();
+    if (!text) return;
+
+    AI_BUSY = true;
+    input.value = '';
+    input.style.height = '';
+    document.getElementById('aiSendBtn').disabled = true;
+
+    var feed = document.getElementById('aiFeed');
+
+    // Сообщение пользователя
+    appendAiMsg(feed, 'user', text, false);
+
+    // Индикатор «думает…»
+    var thinkEl = appendAiMsg(feed, 'ai', 'думает...', true);
+    feed.scrollTop = feed.scrollHeight;
+
+    var histPayload = AI_HISTORY.slice(-6).map(function(m) {
+      return { role: m.role, content: m.content };
+    });
+
+    try {
+      var r = await fetch('/api/ai/chat', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessonId: AI_LESSON, message: text, history: histPayload })
+      });
+
+      thinkEl.remove();
+
+      // Сессия истекла — перезагружаем страницу
+      if (r.status === 401) {
+        appendAiMsg(feed, 'ai', 'Сессия истекла. Обновите страницу.', false);
+        return;
+      }
+
+      var data = await r.json();
+
+      if (data.error) {
+        appendAiMsg(feed, 'ai', data.error, false);
+      } else {
+        appendAiMsg(feed, 'ai', data.reply, false);
+        AI_HISTORY.push({ role: 'user',      content: text       });
+        AI_HISTORY.push({ role: 'assistant', content: data.reply });
+        if (AI_HISTORY.length > 12) AI_HISTORY = AI_HISTORY.slice(-12);
+        updateQuota(data.used, data.limit);
+      }
+    } catch(e) {
+      if (thinkEl.parentNode) thinkEl.remove();
+      appendAiMsg(feed, 'ai', 'Ошибка соединения. Попробуй снова.', false);
+    } finally {
+      AI_BUSY = false;
+      document.getElementById('aiSendBtn').disabled = false;
+      feed.scrollTop = feed.scrollHeight;
+      document.getElementById('aiInput').focus();
+    }
+  };
+
+  // Создать DOM-элемент сообщения
+  function appendAiMsg(feed, role, text, thinking) {
+    var wrap   = document.createElement('div');
+    wrap.className = 'lc-ai-msg lc-ai-msg--' + role;
+
+    var inner  = document.createElement('div');
+
+    var sender = document.createElement('div');
+    sender.className   = 'lc-ai-sender';
+    sender.textContent = role === 'ai' ? 'AI-наставник' : 'Ты';
+
+    var bubble = document.createElement('div');
+    bubble.className   = 'lc-ai-bubble' + (thinking ? ' lc-ai-bubble--thinking' : '');
+    bubble.textContent = text;
+
+    inner.appendChild(sender);
+    inner.appendChild(bubble);
+    wrap.appendChild(inner);
+    feed.appendChild(wrap);
+    return wrap;
+  }
+})();
+
+// ── Перемешивание вариантов квиза ────────────────────────────────
+(function shuffleAllQuizOpts() {
+  var LETTERS = ['A','B','C','D','E'];
+  document.querySelectorAll('.lb-quiz-opts').forEach(function (opts) {
+    var btns = Array.from(opts.children);
+    // Fisher-Yates shuffle
+    for (var i = btns.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = btns[i]; btns[i] = btns[j]; btns[j] = tmp;
+    }
+    // Перемещаем в DOM в новом порядке
+    btns.forEach(function (btn, idx) {
+      opts.appendChild(btn);
+      // Буква рендерится через CSS attr(data-letter) — достаточно обновить атрибут
+      if ('letter' in btn.dataset) {
+        btn.dataset.letter = LETTERS[idx] || String(idx + 1);
+      }
+    });
+  });
+})();
+
+// ── Расширение панели ─────────────────────────────────────────────
+function applyPanelWidth(expanded) {
+  var container = document.querySelector('.px-container');
+  var btn       = document.getElementById('panelExpandBtn');
+  container.classList.toggle('px-expanded', expanded);
+  btn.classList.toggle('active', expanded);
+  btn.title = expanded ? 'Свернуть' : 'Расширить окно';
+  setTimeout(function () {
+    document.querySelectorAll('.lb-code-ace-view').forEach(function (el) {
+      if (el._aceEditor) el._aceEditor.resize();
+    });
+  }, 370);
+}
+
+function togglePanelWidth() {
+  var expanded = !document.querySelector('.px-container').classList.contains('px-expanded');
+  localStorage.setItem('lessonExpanded', expanded ? '1' : '0');
+  applyPanelWidth(expanded);
+}
+
+// Восстанавливаем состояние при загрузке
+applyPanelWidth(localStorage.getItem('lessonExpanded') === '1');
+</script>
+}

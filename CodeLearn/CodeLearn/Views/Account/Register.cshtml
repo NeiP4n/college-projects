@@ -1,0 +1,64 @@
+@model CodeLearn.Models.RegisterViewModel
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth/auth.css" asp-append-version="true" />
+}
+
+@section FullPage {
+<div class="auth-page">
+<div id="stars"></div>
+
+    <!-- Геометрические фигуры -->
+    <div class="geo-shapes">
+        <svg class="geo geo-1" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="180" height="180" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+            <rect x="30" y="30" width="140" height="140" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        </svg>
+        <svg class="geo geo-3" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="100,8 192,190 8,190" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
+        </svg>
+        <svg class="geo geo-5" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="100,6 194,100 100,194 6,100" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
+        </svg>
+        <svg class="geo geo-center" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="100,4 196,52 196,148 100,196 4,148 4,52"
+                     fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+            <polygon points="100,20 180,60 180,140 100,180 20,140 20,60"
+                     fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>
+            <rect x="40" y="40" width="120" height="120" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.8"/>
+        </svg>
+        <svg class="geo geo-7" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="260" height="260" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" stroke-dasharray="8 6"/>
+        </svg>
+    </div>
+
+    <div class="auth-logo">CodeLearn</div>
+        <div class="auth-tagline">Изучай программирование на практике</div>
+
+    <div class="auth-card">
+        <div class="auth-card-title">Регистрация</div>
+
+        <form asp-action="Register" method="post">
+            <input class="auth-field" asp-for="Email" placeholder="email" type="email" autocomplete="email" />
+            <span class="auth-validation" asp-validation-for="Email"></span>
+
+            <input class="auth-field" asp-for="Password" placeholder="пароль" type="password" autocomplete="new-password" />
+            <span class="auth-validation" asp-validation-for="Password"></span>
+
+            <input class="auth-field" asp-for="ConfirmPassword" placeholder="повторите пароль" type="password" autocomplete="new-password" />
+            <span class="auth-validation" asp-validation-for="ConfirmPassword"></span>
+
+            <div class="auth-validation auth-validation-summary" asp-validation-summary="ModelOnly"></div>
+
+            <button type="submit" class="auth-btn">Получить код</button>
+        </form>
+
+        <div class="auth-footer">
+            Уже есть аккаунт? <a asp-action="Login">Войти</a>
+        </div>
+    </div>
+
+</div>
+
+<script src="~/js/main/effects/starPerlin.js" asp-append-version="true"></script>
+}

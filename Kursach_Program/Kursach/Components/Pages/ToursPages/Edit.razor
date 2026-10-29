@@ -1,0 +1,119 @@
+﻿@page "/tours/edit"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Редактировать</PageTitle>
+
+<h1>Редактировать</h1>
+
+<h2>Туры</h2>
+<hr />
+@if (Tours is null)
+{
+    <p><em>Загрузка...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Tours" OnValidSubmit="UpdateTours" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="Tours.Id" value="@Tours.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Название:</label>
+                    <InputText id="name" @bind-Value="Tours.Name" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Tours.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="destination" class="form-label">Направление:</label>
+                    <InputText id="destination" @bind-Value="Tours.Destination" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Tours.Destination" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="startdate" class="form-label">Дата начала:</label>
+                    <InputDate id="startdate" @bind-Value="Tours.StartDate" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Tours.StartDate" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="enddate" class="form-label">Дата окончания:</label>
+                    <InputDate id="enddate" @bind-Value="Tours.EndDate" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Tours.EndDate" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="price" class="form-label">Цена:</label>
+                    <InputNumber id="price" @bind-Value="Tours.Price" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Tours.Price" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Описание:</label>
+                    <InputText id="description" @bind-Value="Tours.Description" class="form-control" />
+                    <ValidationMessage For="() => Tours.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="avalableseats" class="form-label">Свободные места:</label>
+                    <InputNumber id="avalableseats" @bind-Value="Tours.AvailableSeats" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Tours.AvailableSeats" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/tours">Назад к списку</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Tours? Tours { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Tours ??= await context.Tours.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Tours is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // Для защиты от атак по переполнению формы, разрешите привязку только тех свойств, которые вы хотите.
+    // Дополнительную информацию смотрите на https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateTours()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Tours!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ToursExists(Tours!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/tours");
+    }
+
+    private bool ToursExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Tours.Any(e => e.Id == id);
+    }
+}

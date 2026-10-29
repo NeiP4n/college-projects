@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;} body{margin:0;background:#FBF7EF;}</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="contacts" hint-size="100%,86px"></dc-import>
+
+  <section style="position: relative; padding: clamp(80px, 11vw, 150px) clamp(20px, 5vw, 64px) clamp(60px, 8vw, 110px); background: linear-gradient(120deg,#0C3B45,#2E96A8); overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=2000&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.26;">
+    <div style="position: relative; z-index: 2; max-width: 1240px; margin: 0 auto;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #BFE0E5; margin-bottom: 18px;">Свяжитесь с нами</div>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; color: #FBF7EF; margin: 0;">Бронирование<br>и контакты</h1>
+    </div>
+  </section>
+
+  <section style="max-width: 1240px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1.2fr 0.9fr; gap: 56px; align-items: start;">
+    <!-- FORM -->
+    <div style="background: #fff; border-radius: 22px; padding: clamp(30px, 4vw, 48px); box-shadow: 0 18px 50px rgba(12,59,69,0.08);">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(26px, 3vw, 38px); font-weight: 600; color: #0C3B45; margin: 0 0 6px;">Запрос на бронирование</h2>
+      <p style="font-size: 14.5px; color: #5C6E70; margin: 0 0 28px;">Заполните форму — мы подтвердим наличие и пришлём детали в течение часа.</p>
+
+      <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #EAF4F1; border: 1px solid #B7DAD0; border-radius: 16px; padding: 32px; text-align: center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#145A6B;margin-bottom:8px;">Спасибо! Заявка принята</div>
+          <p style="font-size:15px;color:#455A5C;line-height:1.6;margin:0;">Мы свяжемся с вами в ближайшее время, чтобы подтвердить даты и помочь с выбором номера.</p>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <label style="display:flex;flex-direction:column;gap:7px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Имя</span><input value="{{ name }}" onInput="{{ onName }}" placeholder="Как к вам обращаться" style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14.5px;color:#15292E;background:#fff;"></label>
+          <label style="display:flex;flex-direction:column;gap:7px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Телефон</span><input value="{{ phone }}" onInput="{{ onPhone }}" placeholder="+7 ___ ___ __ __" style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14.5px;color:#15292E;background:#fff;"></label>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <label style="display:flex;flex-direction:column;gap:7px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Заезд</span><input type="date" style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14px;color:#15292E;background:#fff;"></label>
+          <label style="display:flex;flex-direction:column;gap:7px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Выезд</span><input type="date" style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14px;color:#15292E;background:#fff;"></label>
+          <label style="display:flex;flex-direction:column;gap:7px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Гости</span><select style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14px;color:#15292E;background:#fff;"><option>2 гостя</option><option>1 гость</option><option>3 гостя</option><option>4 гостя</option></select></label>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Категория номера</span><select style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14.5px;color:#15292E;background:#fff;"><option>Стандарт «Бриз»</option><option>Делюкс «Прибой»</option><option>Семейный «Дюна»</option><option>Сюит «Лагуна»</option></select></label>
+        <label style="display:flex;flex-direction:column;gap:7px;margin-bottom:24px;"><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6E97A0;">Пожелания</span><textarea placeholder="Повод поездки, особые просьбы…" style="border:1px solid #D7C7AD;border-radius:10px;padding:13px 14px;font-family:inherit;font-size:14.5px;color:#15292E;background:#fff;min-height:90px;resize:vertical;"></textarea></label>
+        <button onClick="{{ submit }}" style="width:100%;padding:16px;border:none;border-radius:12px;background:#145A6B;color:#FBF7EF;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;" style-hover="background:#0C3B45;">Отправить запрос</button>
+      </div>
+      </sc-if>
+    </div>
+
+    <!-- CONTACT INFO -->
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;margin-bottom:12px;">Адрес</div>
+        <div style="font-size:17px;color:#15292E;line-height:1.6;">Набережная Лагуны, 1<br>посёлок Тихая Бухта</div>
+      </div>
+      <div style="height:1px;background:#E2D4BC;"></div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;margin-bottom:12px;">Телефон и почта</div>
+        <a href="tel:+78000000000" style="display:block;font-size:17px;color:#15292E;text-decoration:none;margin-bottom:6px;">+7 800 000 00 00</a>
+        <a href="mailto:hello@laguna-hotel.ru" style="display:block;font-size:17px;color:#145A6B;text-decoration:none;">hello@laguna-hotel.ru</a>
+      </div>
+      <div style="height:1px;background:#E2D4BC;"></div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;margin-bottom:12px;">Заезд / выезд</div>
+        <div style="font-size:16px;color:#455A5C;line-height:1.7;">Заезд с 14:00 · Выезд до 12:00<br>Ресепшн работает 24/7</div>
+      </div>
+      <div style="border-radius:18px;overflow:hidden;height:240px;position:relative;background:linear-gradient(135deg,#2E96A8,#0C3B45);">
+        <img src="https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.92;">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><span style="background:rgba(251,247,239,0.94);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;color:#0C3B45;">📍 Мы на берегу лагуны</span></div>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { submitted: false, name: '', phone: '' };
+  renderVals() {
+    return {
+      submitted: this.state.submitted,
+      notSubmitted: !this.state.submitted,
+      name: this.state.name,
+      phone: this.state.phone,
+      onName: (e) => this.setState({ name: e.target.value }),
+      onPhone: (e) => this.setState({ phone: e.target.value }),
+      submit: () => this.setState({ submitted: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

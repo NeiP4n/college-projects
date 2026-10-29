@@ -1,0 +1,103 @@
+@model CodeLearn.Models.ProfileViewModel
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile/profile.css" asp-append-version="true" />
+}
+
+@section FullPage {
+
+    <div class="main-container">
+        <div class="screen-main">
+
+            <!-- Фон -->
+            <div class="background">
+                <img class="bg-map" src="/img/main/background/bg-map.png">
+            </div>
+
+            <!-- Декор -->
+            <img class="mountain-left" src="/img/main/decor/mountain.svg">
+            <img class="mountain-right" src="/img/main/decor/mountain.svg">
+            <img class="castle castle-1" src="/img/main/decor/castle.svg">
+            <img class="castle castle-2" src="/img/main/decor/castle.svg">
+
+            <!-- Эффекты -->
+            <div id="stars"></div>
+            <img src="/img/main/background/fog.png" class="fog">
+
+            <!-- Пиксельная карточка профиля -->
+            <div class="profile-panel">
+
+                <img class="profile-avatar"
+                     src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "/img/main/ui/default-avatar.png" : Model.AvatarUrl)"
+                     alt="avatar">
+
+                <div class="profile-nickname">@Model.NickName</div>
+                <div class="profile-email">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</div>
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">@Model.Streak</div>
+                        <div class="stat-label">серия</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">@Model.TotalDays</div>
+                        <div class="stat-label">дней</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">@Model.CurrentModule</div>
+                        <div class="stat-label">модуль</div>
+                    </div>
+                </div>
+
+                <div class="profile-divider"></div>
+
+                @if (TempData["ProfileSaved"] != null)
+                {
+                    <div class="profile-saved">✓ @TempData["ProfileSaved"]</div>
+                }
+                <div asp-validation-summary="All" class="profile-error"></div>
+
+                <!-- Настройки профиля -->
+                <form asp-action="Save" asp-controller="Profile" method="post"
+                      enctype="multipart/form-data" class="profile-edit-form">
+                    @Html.AntiForgeryToken()
+                    <label class="profile-edit-label">Никнейм</label>
+                    <input class="profile-edit-input" name="nickName" value="@Model.NickName" maxlength="20">
+
+                    <label class="profile-edit-label">Сменить аватар</label>
+                    <input class="profile-edit-file" type="file" name="avatar" accept=".png,.jpg,.jpeg,.webp">
+
+                    <button type="submit" class="profile-save">Сохранить</button>
+                </form>
+
+                <form asp-action="Logout" asp-controller="Account" method="post" class="profile-logout-form">
+                    <button type="submit" class="profile-logout">Выйти</button>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom UI -->
+    <div class="bottom-ui" id="bottomUI">
+        <img class="bottom-panel" src="/img/main/ui/bottom-panel.svg">
+        <a asp-controller="Main" asp-action="Index">
+            <img class="btn-home" src="/img/main/ui/btn-home.svg">
+        </a>
+        <a asp-controller="Profile" asp-action="Index">
+            <img class="btn-profile" src="/img/main/ui/btn-profile.svg">
+        </a>
+    </div>
+
+    <script src="~/lib/perlin.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.min.js"></script>
+    <script src="~/js/main/logic/start-position.js" asp-append-version="true"></script>
+    <script src="~/js/main/animations/cloud-animation.js" asp-append-version="true"></script>
+    <script src="~/js/main/effects/perlinField.js" asp-append-version="true"></script>
+    <script src="~/js/main/effects/fogPerlin.js" asp-append-version="true"></script>
+    <script src="~/js/main/effects/starPerlin.js" asp-append-version="true"></script>
+    <script src="~/js/main/effects/parallaxEffect.js" asp-append-version="true"></script>
+}

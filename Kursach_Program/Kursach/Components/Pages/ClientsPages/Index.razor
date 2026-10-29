@@ -1,0 +1,39 @@
+﻿@page "/clients"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Kursach.Models
+@using Kursach.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+
+<PageTitle>Главная</PageTitle>
+
+<h1>Главная</h1>
+
+<p>
+    <a href="clients/create">Создать новое</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Clients">
+    <PropertyColumn Property="clients => clients.FirstName" Title="Имя" />
+    <PropertyColumn Property="clients => clients.LastName" Title="Фамилия" />
+    <PropertyColumn Property="clients => clients.Phone" Title="Телефон" />
+    <PropertyColumn Property="clients => clients.Email" Title="Email" />
+
+    <TemplateColumn Context="clients">
+        <a href="@($"clients/edit?id={clients.Id}")">Редактировать</a> |
+        <a href="@($"clients/details?id={clients.Id}")">Детали</a> |
+        <a href="@($"clients/delete?id={clients.Id}")">Удалить</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private KursachContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

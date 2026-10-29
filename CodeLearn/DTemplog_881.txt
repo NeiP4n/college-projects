@@ -1,0 +1,83 @@
+
+=== Lesson 974: Числовые алгоритмы ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] challenge_task
+  [200] quiz
+
+=== Lesson 975: Строковые алгоритмы ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] fix_bug
+  [200] quiz
+
+=== Lesson 976: Сортировка и поиск ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] constraint
+  [200] quiz
+
+=== Lesson 977: Банковская система ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] fix_bug
+  [200] checkpoint
+
+=== Lesson 978: Геометрические фигуры ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] constraint
+
+=== Lesson 979: Инвентарь RPG ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] fix_bug
+  [200] checkpoint
+
+=== Lesson 980: Анализ продаж ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] fix_bug
+  [200] quiz
+
+=== Lesson 981: Обработка текста ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] constraint
+  [200] quiz
+
+=== Lesson 982: Pipeline данных ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] quiz
+
+=== Lesson 983: Параллельные задачи ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] fix_bug
+  [200] quiz
+
+=== Lesson 984: Таймаут и отмена ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] fix_bug
+  [200] checkpoint
+
+=== Lesson 985: Async pipeline ===
+  [200] text
+  [200] challenge_task
+  [200] mini_task
+  [200] checkpoint
+
+=== Все уроки 974-985 заполнены! ===

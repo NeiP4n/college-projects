@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;} body{margin:0;background:#FBF7EF;}</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="rooms" hint-size="100%,86px"></dc-import>
+
+  <section style="position: relative; padding: clamp(80px, 11vw, 150px) clamp(20px, 5vw, 64px) clamp(60px, 8vw, 110px); background: linear-gradient(120deg,#0C3B45,#2E96A8); overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=2000&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.28;">
+    <div style="position: relative; z-index: 2; max-width: 1240px; margin: 0 auto;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #BFE0E5; margin-bottom: 18px;">Размещение</div>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; color: #FBF7EF; margin: 0;">Номера</h1>
+      <p style="font-size: 17px; line-height: 1.7; color: #E4EEEF; max-width: 520px; margin: 22px 0 0;">Двенадцать номеров четырёх категорий. В каждом — постельное бельё из льна, мини-бар с местными напитками и вид, ради которого стоит приехать.</p>
+    </div>
+  </section>
+
+  <!-- ROOM 1 -->
+  <section style="max-width: 1240px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center;">
+    <div style="border-radius: 20px; overflow: hidden; height: 460px; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1100&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px;"><span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;">Стандарт</span><span style="font-size:13px;color:#8AA0A2;">20 м² · до 2 гостей</span></div>
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 16px;">Стандарт «Бриз»</h2>
+      <p style="font-size: 16px; line-height: 1.8; color: #455A5C; margin: 0 0 22px;">Светлый номер в тёплых тонах с видом на сад. Идеален для пары, которая приезжает за морем, а не за квадратными метрами.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px;">
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Кровать queen</span>
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Душ</span>
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Кондиционер</span>
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Wi-Fi</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px;"><div><span style="font-size: 13px; color: #8AA0A2;">от</span> <span style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:#145A6B;">5 400 ₽</span> <span style="font-size: 13px; color: #8AA0A2;">/ ночь</span></div><a href="contacts.dc.html" style="padding: 13px 26px; border-radius: 999px; background: #145A6B; color: #FBF7EF; font-size: 14px; font-weight: 600; text-decoration: none;" style-hover="background:#0C3B45;">Забронировать</a></div>
+    </div>
+  </section>
+
+  <!-- ROOM 2 -->
+  <section style="background: #F4ECDD;">
+    <div style="max-width: 1240px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center;">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px;"><span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;">Делюкс</span><span style="font-size:13px;color:#8AA0A2;">28 м² · до 2 гостей</span></div>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 16px;">Делюкс «Прибой»</h2>
+        <p style="font-size: 16px; line-height: 1.8; color: #455A5C; margin: 0 0 22px;">Балкон с видом на воду, кровать king-size и ванна у окна. Просыпаешься — а море уже здесь.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px;">
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Кровать king</span>
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Балкон к морю</span>
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Ванна</span>
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Мини-бар</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 24px;"><div><span style="font-size: 13px; color: #8AA0A2;">от</span> <span style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:#145A6B;">8 900 ₽</span> <span style="font-size: 13px; color: #8AA0A2;">/ ночь</span></div><a href="contacts.dc.html" style="padding: 13px 26px; border-radius: 999px; background: #145A6B; color: #FBF7EF; font-size: 14px; font-weight: 600; text-decoration: none;" style-hover="background:#0C3B45;">Забронировать</a></div>
+      </div>
+      <div style="border-radius: 20px; overflow: hidden; height: 460px; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1100&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+    </div>
+  </section>
+
+  <!-- ROOM 3 -->
+  <section style="max-width: 1240px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center;">
+    <div style="border-radius: 20px; overflow: hidden; height: 460px; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1100&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px;"><span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;">Сюит</span><span style="font-size:13px;color:#8AA0A2;">42 м² · до 3 гостей</span></div>
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 16px;">Сюит «Лагуна»</h2>
+      <p style="font-size: 16px; line-height: 1.8; color: #455A5C; margin: 0 0 22px;">Отдельная гостиная, спальня и собственная терраса с панорамой бухты. Наш лучший номер для долгих неспешных каникул.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px;">
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">2 комнаты</span>
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Терраса</span>
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Панорама</span>
+        <span style="font-size: 13px; color: #455A5C; background: #F4ECDD; padding: 8px 14px; border-radius: 999px;">Халаты и тапочки</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px;"><div><span style="font-size: 13px; color: #8AA0A2;">от</span> <span style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:#145A6B;">14 500 ₽</span> <span style="font-size: 13px; color: #8AA0A2;">/ ночь</span></div><a href="contacts.dc.html" style="padding: 13px 26px; border-radius: 999px; background: #145A6B; color: #FBF7EF; font-size: 14px; font-weight: 600; text-decoration: none;" style-hover="background:#0C3B45;">Забронировать</a></div>
+    </div>
+  </section>
+
+  <!-- ROOM 4 -->
+  <section style="background: #F4ECDD;">
+    <div style="max-width: 1240px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center;">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px;"><span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E96A8;">Семейный</span><span style="font-size:13px;color:#8AA0A2;">38 м² · до 4 гостей</span></div>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 16px;">Семейный «Дюна»</h2>
+        <p style="font-size: 16px; line-height: 1.8; color: #455A5C; margin: 0 0 22px;">Просторный номер с двумя зонами сна, выходом в сад и всем необходимым для отдыха с детьми.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px;">
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">2 спальные зоны</span>
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Выход в сад</span>
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Детская кроватка</span>
+          <span style="font-size: 13px; color: #455A5C; background: #FBF7EF; padding: 8px 14px; border-radius: 999px;">Кухонный уголок</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 24px;"><div><span style="font-size: 13px; color: #8AA0A2;">от</span> <span style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:#145A6B;">11 200 ₽</span> <span style="font-size: 13px; color: #8AA0A2;">/ ночь</span></div><a href="contacts.dc.html" style="padding: 13px 26px; border-radius: 999px; background: #145A6B; color: #FBF7EF; font-size: 14px; font-weight: 600; text-decoration: none;" style-hover="background:#0C3B45;">Забронировать</a></div>
+      </div>
+      <div style="border-radius: 20px; overflow: hidden; height: 460px; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1100&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+    </div>
+  </section>
+
+  <!-- IN EVERY ROOM -->
+  <section style="max-width: 1100px; margin: 0 auto; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px); text-align: center;">
+    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 44px); font-weight: 500; color: #0C3B45; margin: 0 0 44px;">В каждом номере</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+      <div style="padding: 24px;"><div style="font-size:13px;font-weight:700;color:#145A6B;letter-spacing:0.5px;">Льняное бельё</div><p style="font-size:13.5px;color:#5C6E70;line-height:1.6;margin:8px 0 0;">Натуральный текстиль и мягкие пледы.</p></div>
+      <div style="padding: 24px;"><div style="font-size:13px;font-weight:700;color:#145A6B;letter-spacing:0.5px;">Завтрак включён</div><p style="font-size:13.5px;color:#5C6E70;line-height:1.6;margin:8px 0 0;">Из локальных продуктов, до полудня.</p></div>
+      <div style="padding: 24px;"><div style="font-size:13px;font-weight:700;color:#145A6B;letter-spacing:0.5px;">Косметика ручной работы</div><p style="font-size:13.5px;color:#5C6E70;line-height:1.6;margin:8px 0 0;">С ароматами моря и трав.</p></div>
+      <div style="padding: 24px;"><div style="font-size:13px;font-weight:700;color:#145A6B;letter-spacing:0.5px;">Быстрый Wi-Fi</div><p style="font-size:13.5px;color:#5C6E70;line-height:1.6;margin:8px 0 0;">Чтобы работать с видом на воду.</p></div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

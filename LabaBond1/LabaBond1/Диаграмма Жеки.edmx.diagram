@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="2cffa69b66ae4386bf11cf476bce7921" Name="Diagram1" ZoomLevel="54">
+        <EntityTypeShape EntityType="NameDataBaseModel.ВыдачаКниг" Width="1.5" PointX="7.125" PointY="2.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NameDataBaseModel.Каталог" Width="1.5" PointX="3" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NameDataBaseModel.Книги" Width="1.5" PointX="5.25" PointY="2.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NameDataBaseModel.КнижныйФонд" Width="1.5" PointX="3" PointY="5.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="NameDataBaseModel.Поставщики" Width="1.5" PointX="1" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NameDataBaseModel.Читатели" Width="1.5" PointX="5.25" PointY="5.25" IsExpanded="true" />
+        <AssociationConnector Association="NameDataBaseModel.FK__ВыдачаКни__Книга__10566F31" ManuallyRouted="false" />
+        <AssociationConnector Association="NameDataBaseModel.FK__ВыдачаКни__Читат__0F624AF8" ManuallyRouted="false" />
+        <AssociationConnector Association="NameDataBaseModel.FK__Каталог__Поставщ__06CD04F7" ManuallyRouted="false" />
+        <AssociationConnector Association="NameDataBaseModel.FK__Книги__КаталогID__0A9D95DB" ManuallyRouted="false" />
+        <AssociationConnector Association="NameDataBaseModel.FK__Книги__КнижныйФо__09A971A2" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

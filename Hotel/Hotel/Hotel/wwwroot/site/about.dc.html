@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;} body{margin:0;background:#FBF7EF;}</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="about" hint-size="100%,86px"></dc-import>
+
+  <!-- PAGE HEAD -->
+  <section style="position: relative; padding: clamp(80px, 11vw, 150px) clamp(20px, 5vw, 64px) clamp(60px, 8vw, 110px); background: linear-gradient(120deg,#0C3B45,#2E96A8); overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=2000&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.30;">
+    <div style="position: relative; z-index: 2; max-width: 1240px; margin: 0 auto;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #BFE0E5; margin-bottom: 18px;">Знакомство</div>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; color: #FBF7EF; margin: 0; max-width: 800px;">Маленький отель<br>с большой историей</h1>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <section style="max-width: 1100px; margin: 0 auto; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;">
+    <div>
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-bottom: 18px;">Наша философия</div>
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 24px; line-height: 1.08;">Дом у воды, а не гостиница</h2>
+      <p style="font-size: 16px; line-height: 1.85; color: #455A5C; margin: 0 0 18px;">«Лагуна» началась с простого желания — построить место, в которое хочется возвращаться. Не масштаб, не звёзды на фасаде, а двенадцать номеров, где каждого гостя знают по имени.</p>
+      <p style="font-size: 16px; line-height: 1.85; color: #455A5C; margin: 0;">Мы выбрали тихую бухту вдали от шумных набережных. Здесь песок остаётся тёплым до заката, а единственный звук вечером — это волны и негромкий джаз с террасы.</p>
+    </div>
+    <div style="border-radius: 20px; overflow: hidden; height: 460px; background: linear-gradient(135deg,#2E96A8,#0C3B45);"><img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1100&q=80" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+  </section>
+
+  <!-- VALUES -->
+  <section style="background: #F4ECDD; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px);">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 48px); font-weight: 500; color: #0C3B45; margin: 0 0 48px; text-align: center;">Что для нас важно</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;">
+        <div style="background: #FBF7EF; border-radius: 18px; padding: 36px 32px;">
+          <div style="font-family: 'Cormorant Garamond', serif; font-size: 40px; color: #C8A368; line-height: 1;">01</div>
+          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 18px 0 12px;">Тишина и приватность</h3>
+          <p style="font-size: 14.5px; line-height: 1.7; color: #5C6E70; margin: 0;">Никаких толп и очередей. Только вы, ваши близкие и море за окном.</p>
+        </div>
+        <div style="background: #FBF7EF; border-radius: 18px; padding: 36px 32px;">
+          <div style="font-family: 'Cormorant Garamond', serif; font-size: 40px; color: #C8A368; line-height: 1;">02</div>
+          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 18px 0 12px;">Честная забота</h3>
+          <p style="font-size: 14.5px; line-height: 1.7; color: #5C6E70; margin: 0;">Завтрак из локальных продуктов, живые цветы в номере и команда, которая помнит детали.</p>
+        </div>
+        <div style="background: #FBF7EF; border-radius: 18px; padding: 36px 32px;">
+          <div style="font-family: 'Cormorant Garamond', serif; font-size: 40px; color: #C8A368; line-height: 1;">03</div>
+          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #0C3B45; margin: 18px 0 12px;">Уважение к месту</h3>
+          <p style="font-size: 14.5px; line-height: 1.7; color: #5C6E70; margin: 0;">Натуральные материалы, бережное отношение к берегу и поддержка местных мастеров.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section style="max-width: 900px; margin: 0 auto; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px);">
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-bottom: 18px; text-align: center;">Путь</div>
+    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 46px); font-weight: 500; color: #0C3B45; margin: 0 0 56px; text-align: center;">Как мы росли</h2>
+    <div style="display: flex; flex-direction: column; gap: 0;">
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 32px; padding: 28px 0; border-top: 1px solid #E2D4BC;">
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: #145A6B;">2016</div>
+        <div><h3 style="font-size: 17px; font-weight: 700; color: #0C3B45; margin: 0 0 6px;">Первый дом на берегу</h3><p style="font-size: 15px; line-height: 1.7; color: #5C6E70; margin: 0;">Старый рыбацкий дом превратился в четыре номера и террасу с завтраками.</p></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 32px; padding: 28px 0; border-top: 1px solid #E2D4BC;">
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: #145A6B;">2019</div>
+        <div><h3 style="font-size: 17px; font-weight: 700; color: #0C3B45; margin: 0 0 6px;">SPA и лодочная станция</h3><p style="font-size: 15px; line-height: 1.7; color: #5C6E70; margin: 0;">Появился SPA-павильон у воды и собственные лодки для прогулок по лагуне.</p></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 32px; padding: 28px 0; border-top: 1px solid #E2D4BC; border-bottom: 1px solid #E2D4BC;">
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: #145A6B;">2024</div>
+        <div><h3 style="font-size: 17px; font-weight: 700; color: #0C3B45; margin: 0 0 6px;">Двенадцать номеров</h3><p style="font-size: 15px; line-height: 1.7; color: #5C6E70; margin: 0;">Отель вырос до нынешнего размера, сохранив камерность и атмосферу дома.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background: #0C3B45; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px); text-align: center;">
+    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4.5vw, 52px); font-weight: 500; color: #FBF7EF; margin: 0 0 24px;">Приезжайте познакомиться</h2>
+    <a href="contacts.dc.html" style="display: inline-flex; padding: 15px 34px; border-radius: 999px; background: #EBD6A8; color: #0C3B45; font-size: 15px; font-weight: 700; text-decoration: none;" style-hover="background: #FBF7EF;">Забронировать номер</a>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

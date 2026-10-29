@@ -1,0 +1,148 @@
+=== Lesson 903: Арифметические операторы ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] text
+  [200] prediction
+  [200] mini_task
+  [200] quiz
+
+=== Lesson 904: Операторы сравнения и логики ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] fix_bug
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 905: Битовые операторы ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] code
+  [200] quiz
+  [200] mini_task
+
+=== Lesson 906: Тернарный и null-операторы ===
+  [200] text
+  [200] code
+  [200] code
+  [200] prediction
+  [200] compare_variants
+  [200] mini_task
+
+=== Lesson 907: Приоритет операторов ===
+  [200] text
+  [200] prediction
+  [200] prediction
+  [200] fix_bug
+  [200] quiz
+  [200] transfer_test
+
+=== Lesson 908: if / else if / else ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] fix_bug
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 909: switch и switch expression ===
+  [200] text
+  [200] code
+  [200] compare_variants
+  [200] fix_bug
+  [200] mini_task
+  [200] quiz
+
+=== Lesson 910: Pattern Matching ===
+  [200] text
+  [200] code
+  [200] code_to_intent
+  [200] compare_variants
+  [200] code
+  [200] mini_task
+
+=== Lesson 911: for и while ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] fix_bug
+  [200] mini_task
+  [200] mutation
+
+=== Lesson 912: foreach и do-while ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] compare_variants
+  [200] mini_task
+  [200] fix_bug
+
+=== Lesson 913: break, continue, return ===
+  [200] text
+  [200] prediction
+  [200] prediction
+  [200] prediction
+  [200] fix_bug
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 914: Объявление и вызов методов ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] fix_bug
+  [200] knowledge_check
+
+=== Lesson 915: Перегрузка методов ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] code
+  [200] quiz
+  [200] mini_task
+
+=== Lesson 916: ref, out, in параметры ===
+  [200] text
+  [200] code
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] quiz
+
+=== Lesson 917: params и необязательные параметры ===
+  [200] text
+  [200] code
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] quiz
+
+=== Lesson 918: Рекурсия ===
+  [200] text
+  [200] progressive_reveal
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] counterfactual
+
+=== Lesson 919: Expression-bodied члены ===
+  [200] text
+  [200] compare_variants
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] fill_blank
+
+=== Lesson 920: Локальные функции ===
+  [200] text
+  [200] code
+  [200] code
+  [200] compare_variants
+  [200] prediction
+  [200] mini_task
+  [200] knowledge_check
+
+=== Готово! ===

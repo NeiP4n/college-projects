@@ -1,0 +1,58 @@
+﻿@page "/bookings/create"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Создать</PageTitle>
+
+<h1>Создать</h1>
+
+<h2>Бронирования</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Bookings" OnValidSubmit="AddBookingsHandler" FormName="createBookingForm" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="tourid" class="form-label">TourId (Идентификатор тура):</label>
+                <InputNumber id="tourid" @bind-Value="Bookings.TourId" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Bookings.TourId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="clientid" class="form-label">ClientId (Идентификатор клиента):</label>
+                <InputNumber id="clientid" @bind-Value="Bookings.ClientId" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Bookings.ClientId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="bookingdate" class="form-label">Дата бронирования:</label>
+                <InputDate id="bookingdate" @bind-Value="Bookings.BookingDate" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Bookings.BookingDate" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="status" class="form-label">Статус:</label>
+                <InputText id="status" @bind-Value="Bookings.Status" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Bookings.Status" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Создать</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/bookings">Назад к списку</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Bookings Bookings { get; set; } = new();
+
+    private async Task AddBookingsHandler()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Bookings.Add(Bookings);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/bookings");
+    }
+}

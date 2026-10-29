@@ -1,0 +1,121 @@
+
+=== Lesson 936: Массивы ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] mini_task
+  [200] prediction
+  [200] fix_bug
+  [200] checkpoint
+
+=== Lesson 937: List<T> ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] quiz
+  [200] fill_blank
+  [200] mutation
+
+=== Lesson 938: Dictionary<K,V> ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] quiz
+  [200] fix_bug
+  [200] drag_order
+
+=== Lesson 939: HashSet, Queue, Stack ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] prediction
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 940: IEnumerable и foreach ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] prediction
+  [200] fill_blank
+  [200] mini_task
+
+=== Lesson 941: Generics ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] quiz
+  [200] compare_variants
+
+=== Lesson 942: Generics where ===
+  [200] text
+  [200] code
+  [200] quiz
+  [200] fill_blank
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 943: IComparable и IComparer ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] quiz
+  [200] compare_variants
+  [200] checkpoint
+
+=== Lesson 944: Введение в LINQ ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] quiz
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 945: Where, Select, OrderBy ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] fix_bug
+  [200] quiz
+  [200] drag_order
+
+=== Lesson 946: GroupBy и Join ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] code
+  [200] quiz
+
+=== Lesson 947: Агрегация ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] fill_blank
+  [200] quiz
+
+=== Lesson 948: First, Single, Any, All, Take, Skip ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] quiz
+  [200] constraint
+
+=== Lesson 949: Цепочки запросов ===
+  [200] text
+  [200] code
+  [200] mini_task
+  [200] transfer_test
+  [200] checkpoint
+
+=== Lesson 950: Query syntax vs Method syntax ===
+  [200] text
+  [200] two_path
+  [200] code
+  [200] quiz
+  [200] fill_blank
+  [200] mini_task
+  [200] transfer_test
+
+Доготово!

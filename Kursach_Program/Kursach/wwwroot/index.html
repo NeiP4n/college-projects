@@ -1,0 +1,52 @@
+﻿@page "/home"
+
+@inject IJSRuntime JSRuntime
+@using System.Text.Json;
+
+<h3>Гистограмма - Сумма денег по месяцам</h3>
+
+<div style="width: 80%; height: 400px;">
+    <canvas id="myChart"></canvas>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var data = new double[] { 1200, 2300, 1800, 1500, 2100 }; // Пример данных (сумма по месяцам)
+            await DrawChart(data);
+        }
+    }
+
+    private async Task DrawChart(double[] data)
+    {
+        // Сериализация данных в формат JSON
+        var jsonData = JsonSerializer.Serialize(data);
+
+        // Вызов JavaScript кода для отрисовки графика
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май'],
+                    datasets: [{
+                        label: 'Сумма денег',
+                        data: " + jsonData + @",
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        ");
+    }
+}

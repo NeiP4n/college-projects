@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+</helmet>
+<header ref="{{ root }}" style="position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 18px clamp(20px, 5vw, 64px); background: rgba(251, 247, 239, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgba(20, 90, 107, 0.12); font-family: 'Manrope', sans-serif;">
+  <a href="index.dc.html" style="display: flex; flex-direction: column; line-height: 1; text-decoration: none;">
+    <span style="font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; letter-spacing: 0.5px; color: #0C3B45;">Лагуна</span>
+    <span style="font-size: 9.5px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-top: 3px;">Бутик-отель у моря</span>
+  </a>
+
+  <nav style="display: flex; align-items: center; gap: clamp(14px, 2vw, 30px);">
+    <a data-page="about" href="about.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Об отеле</a>
+    <a data-page="rooms" href="rooms.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Номера</a>
+    <a data-page="services" href="services.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Услуги</a>
+    <a data-page="prices" href="prices.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Цены</a>
+    <a data-page="gallery" href="gallery.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Галерея</a>
+    <a data-page="reviews" href="reviews.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Отзывы</a>
+    <a data-page="blog" href="blog.dc.html" style="font-size: 14px; font-weight: 500; color: #15292E; text-decoration: none; letter-spacing: 0.2px;">Блог</a>
+    <a href="../main.html" style="font-size: 13px; font-weight: 600; color: #6E97A0; text-decoration: none; letter-spacing: 0.2px; border: 1px solid rgba(20,90,107,0.25); border-radius: 999px; padding: 9px 16px;">Для персонала</a>
+    <a data-page="contacts" href="contacts.dc.html" style="display: inline-flex; align-items: center; padding: 11px 22px; border-radius: 999px; background: #145A6B; color: #FBF7EF; font-size: 13.5px; font-weight: 600; text-decoration: none; letter-spacing: 0.3px;" style-hover="background: #0C3B45;">Забронировать</a>
+  </nav>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 90}, &quot;active&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    const active = this.props.active;
+    const el = this.refs.root;
+    if (!active || !el) return;
+    const link = el.querySelector(`a[data-page="${active}"]`);
+    if (link) {
+      link.style.color = '#2E96A8';
+      link.style.fontWeight = '700';
+    }
+  }
+  renderVals() {
+    return { root: (el) => { this.refs = this.refs || {}; this.refs.root = el; } };
+  }
+}
+</script>
+</body>
+</html>

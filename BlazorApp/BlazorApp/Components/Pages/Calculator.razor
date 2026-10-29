@@ -1,0 +1,113 @@
+﻿@page "/calculator"
+@rendermode InteractiveServer
+
+<PageTitle>Calculator</PageTitle>
+
+<h3>Калькулятор</h3>
+
+<div class="flex-column">
+    <input type="text" style="width: 100%" @bind-value="number" />
+</div>
+
+<div class="flex-wrap" style="margin-top: 6px;">
+    <div class="flex-row" style="margin-top: 6px;">
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(1))">1</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(2))">2</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(3))">3</button>
+        <br>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(4))">4</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(5))">5</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(6))">6</button>
+        <br>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(7))">7</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(8))">8</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(9))">9</button>
+        <br>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@(() => AddDigit(0))">0</button>
+    </div>
+
+    <div class="flex-row" style="margin-top: 6px;">
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@Addition">+</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@Divide">/</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@Multiply">*</button>
+        <br />
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@Minus">-</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@Sqrt">sqrt</button>
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@ostatok">%</button>
+        <br />
+        <button type="button" class="btn btn-light" style="width: 50px;" @onclick="@GetEquals">=</button>
+    </div>
+</div>
+
+@code {
+    public double num;
+    private double total = 0;
+    private string number = "0";
+    private string lastOperation = string.Empty;
+
+    private void AddDigit(int a)
+    {
+        if (number == "0") number = "";
+        number += a.ToString();
+    }
+
+    private void PerformLastOperation()
+    {
+        if (!double.TryParse(number, out num)) return;
+
+        switch (lastOperation)
+        {
+            case "+": total += num; break;
+            case "-": total -= num; break;
+            case "*": total *= num; break;
+            case "%":
+                if (num == 0)
+                {
+                    number = "Ошибка"; 
+                    return;
+                }
+                total %= num;
+                break;
+            case "sqrt":
+                total = Sqrt(num);
+                number = total.ToString();
+                lastOperation = "";
+                return;
+            case "/": if (num != 0) total /= num; break;
+        }
+    }
+
+    private double Sqrt(double value)
+    {
+        return Math.Sqrt(value);
+    }
+
+    private void SetOperation(string op)
+    {
+        if (!string.IsNullOrEmpty(lastOperation))
+        {
+            PerformLastOperation();
+        }
+        else
+        {
+            total = double.Parse(number);
+        }
+
+        lastOperation = op;
+        number = "0"; 
+    }
+
+    private void Sqrt() => SetOperation("sqrt");
+    private void Addition() => SetOperation("+");
+    private void Minus() => SetOperation("-");
+    private void Multiply() => SetOperation("*");
+    private void Divide() => SetOperation("/");
+    private void ostatok() => SetOperation("%");
+
+    private void GetEquals()
+    {
+        PerformLastOperation();
+        number = total.ToString();
+        lastOperation = "";
+    }
+}

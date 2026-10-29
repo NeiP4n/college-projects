@@ -1,0 +1,25 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MathTrainer", "MathTrainer.csproj", "{6CBAB769-4B60-4B8B-BD78-FCE3821F44BE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6CBAB769-4B60-4B8B-BD78-FCE3821F44BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CBAB769-4B60-4B8B-BD78-FCE3821F44BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CBAB769-4B60-4B8B-BD78-FCE3821F44BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CBAB769-4B60-4B8B-BD78-FCE3821F44BE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7F3AD0FE-0728-4F81-B3ED-ADD9D510B92C}
+	EndGlobalSection
+EndGlobal

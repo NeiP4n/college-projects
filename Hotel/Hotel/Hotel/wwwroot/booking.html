@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Бронирование</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="brand">
+      <span class="brand-name">ОТЕЛИ</span>
+      <span class="brand-section">Бронирование</span>
+    </div>
+    <button class="header-back" onclick="postToHost('navigate', { page: 'main' })">&larr; Главная</button>
+  </div>
+
+  <div class="app-main">
+    <div>
+      <div class="page-eyebrow">Гостиница</div>
+      <h1 class="page-title">Бронирование номеров</h1>
+    </div>
+
+    <div class="layout-split">
+      <div class="card">
+        <div class="field">
+          <label for="guestSelect">Гость</label>
+          <select id="guestSelect"></select>
+        </div>
+        <div class="field">
+          <label for="roomSelect">Номер</label>
+          <select id="roomSelect"></select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="dateIn">Дата заезда</label>
+            <input id="dateIn" type="date" />
+          </div>
+          <div class="field">
+            <label for="dateOut">Дата выезда</label>
+            <input id="dateOut" type="date" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="statusSelect">Статус</label>
+            <select id="statusSelect">
+              <option>Отменено</option>
+              <option>Завершено</option>
+              <option selected>Подтверждено</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="priceInput">Цена</label>
+            <input id="priceInput" type="number" />
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-block" style="margin-bottom:12px;" onclick="calcPrice()">Рассчитать стоимость</button>
+        <button class="btn btn-primary btn-block" style="margin-bottom:12px;" onclick="addBooking()">Забронировать</button>
+        <button class="btn btn-outline btn-block" onclick="exportCurrentBooking()">Экспорт текущей</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:28px;">
+        <div>
+          <div class="section-header" style="margin-bottom:12px;">
+            <h2 class="page-title" style="font-size:22px;">Список бронирований</h2>
+            <button class="btn btn-outline" onclick="postToHost('exportBookings', {})">Экспорт</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ФИО гостя</th><th>Номер</th><th>Заезд</th><th>Выезд</th><th>Бронь от</th><th>Статус</th><th>Цена</th>
+                </tr>
+              </thead>
+              <tbody id="bookingRows"><tr class="empty-row"><td colspan="7">Загрузка...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-header" style="margin-bottom:12px;">
+            <h2 class="page-title" style="font-size:22px;">Поиск гостя</h2>
+          </div>
+          <div class="search-bar" style="margin-bottom:12px;">
+            <span class="search-icon">&#128269;</span>
+            <input id="guestSearchInput" type="text" placeholder="Поиск по ФИО или телефону" onkeydown="if(event.key==='Enter') searchGuestsForBooking()" />
+            <button class="btn btn-secondary" onclick="searchGuestsForBooking()">Найти</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>ID</th><th>ФИО</th><th>Телефон</th></tr></thead>
+              <tbody id="guestSearchRows"><tr class="empty-row"><td colspan="3">Загрузка...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="bridge.js"></script>
+<script>
+  function calcPrice() {
+    postToHost('calcPrice', {
+      roomId: guestSelectValue('roomSelect'),
+      dateIn: document.getElementById('dateIn').value,
+      dateOut: document.getElementById('dateOut').value
+    });
+  }
+
+  function addBooking() {
+    postToHost('addBooking', {
+      guestId: guestSelectValue('guestSelect'),
+      roomId: guestSelectValue('roomSelect'),
+      dateIn: document.getElementById('dateIn').value,
+      dateOut: document.getElementById('dateOut').value,
+      status: document.getElementById('statusSelect').value,
+      price: document.getElementById('priceInput').value
+    });
+  }
+
+  function exportCurrentBooking() {
+    postToHost('exportCurrentBooking', {
+      guestId: guestSelectValue('guestSelect'),
+      roomId: guestSelectValue('roomSelect'),
+      dateIn: document.getElementById('dateIn').value,
+      dateOut: document.getElementById('dateOut').value,
+      status: document.getElementById('statusSelect').value,
+      price: document.getElementById('priceInput').value
+    });
+  }
+
+  function searchGuestsForBooking() {
+    postToHost('searchGuestsForBooking', { query: document.getElementById('guestSearchInput').value });
+  }
+
+  function guestSelectValue(id) {
+    const el = document.getElementById(id);
+    return el.value ? Number(el.value) : null;
+  }
+
+  function fillSelect(id, items, placeholder) {
+    const el = document.getElementById(id);
+    el.innerHTML = '<option value="">' + escapeHtml(placeholder) + '</option>' +
+      items.map(function (it) { return '<option value="' + it.id + '">' + escapeHtml(it.label) + '</option>'; }).join('');
+  }
+
+  function renderGuestOptions(guests) { fillSelect('guestSelect', guests, 'Выберите гостя'); }
+  function renderRoomOptions(rooms) { fillSelect('roomSelect', rooms, 'Выберите номер'); }
+
+  function renderBookings(rows) {
+    const body = document.getElementById('bookingRows');
+    if (!rows || rows.length === 0) { body.innerHTML = '<tr class="empty-row"><td colspan="7">Нет данных</td></tr>'; return; }
+    body.innerHTML = rows.map(function (r) {
+      return '<tr>' +
+        '<td>' + escapeHtml(r.guestName) + '</td>' +
+        '<td>' + escapeHtml(r.roomId) + '</td>' +
+        '<td>' + escapeHtml(r.dateIn) + '</td>' +
+        '<td>' + escapeHtml(r.dateOut) + '</td>' +
+        '<td>' + escapeHtml(r.bookedAt) + '</td>' +
+        '<td><span class="chip">' + escapeHtml(r.status) + '</span></td>' +
+        '<td>' + escapeHtml(r.price) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function renderGuestSearchResults(rows) {
+    const body = document.getElementById('guestSearchRows');
+    if (!rows || rows.length === 0) { body.innerHTML = '<tr class="empty-row"><td colspan="3">Нет данных</td></tr>'; return; }
+    body.innerHTML = rows.map(function (r) {
+      return '<tr onclick="selectGuestRow(' + r.id + ', ' + JSON.stringify(escapeHtml(r.fio)) + ')">' +
+        '<td>' + r.id + '</td><td>' + escapeHtml(r.fio) + '</td><td>' + escapeHtml(r.phone) + '</td></tr>';
+    }).join('');
+  }
+
+  function selectGuestRow(id) {
+    document.getElementById('guestSelect').value = id;
+  }
+
+  function setPrice(value) {
+    document.getElementById('priceInput').value = value;
+  }
+
+  postToHost('ready', {});
+</script>
+</body>
+</html>

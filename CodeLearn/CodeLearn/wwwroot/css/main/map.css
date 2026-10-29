@@ -1,0 +1,96 @@
+﻿.castle,
+.mountain-left,
+.mountain-right,
+.tree
+{
+    position: absolute;
+    -webkit-mask-image: linear-gradient( to bottom, black 0%, black 70%, transparent 100% );
+    mask-image: linear-gradient( to bottom, black 0%, black 0%, transparent 90% );
+    z-index:1000;
+}
+
+
+/* =====================================================
+   ЛЕС
+===================================================== */
+
+
+.tree {
+    position: absolute;
+    opacity:0.1;
+}
+
+
+/* =====================================================
+   ГОРЫ
+===================================================== */
+
+.mountain-left {
+    left: 35%;
+    transform: scale(1.9) scaleX(-1);
+}
+
+.mountain-right {
+    top: 0%;
+    right: 35%;
+    transform: scale(1.95);
+}
+
+/* =====================================================
+   ЗАМКИ
+===================================================== */
+
+.castle {
+    position: absolute;
+    width: 46px;
+    opacity:0.2;
+}
+
+.castle-1 {
+    left: 1084px;
+    top: 466px;
+    opacity:0.1;
+}
+
+.castle-2 {
+    left: 900px;
+    top: 702px;
+}
+
+.bg-map {
+    position: absolute;
+
+    right: 24%;
+    bottom: 10%;
+
+    transform: scale(2);
+
+    opacity: 1;
+    filter: grayscale(1) brightness(0.55) contrast(1.25) blur(1px);
+
+    z-index: 10000;
+}
+
+/*.background {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.swords {
+    position: absolute;
+    left: 5%;
+    top: 0%;
+    opacity:1;
+    border: solid red;
+}*/
+
+.flag {
+    position: absolute;
+    left: 5%;
+    top: 70%;
+    opacity: 1;
+}

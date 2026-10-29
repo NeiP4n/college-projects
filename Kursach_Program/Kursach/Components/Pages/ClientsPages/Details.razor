@@ -1,0 +1,53 @@
+﻿@page "/clients/details"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Детали</PageTitle>
+
+<h1>Детали</h1>
+
+<div>
+    <h2>Клиенты</h2>
+    <hr />
+    @if (clients is null)
+    {
+        <p><em>Загрузка...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Имя</dt>
+            <dd class="col-sm-10">@clients.FirstName</dd>
+            <dt class="col-sm-2">Фамилия</dt>
+            <dd class="col-sm-10">@clients.LastName</dd>
+            <dt class="col-sm-2">Телефон</dt>
+            <dd class="col-sm-10">@clients.Phone</dd>
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@clients.Email</dd>
+        </dl>
+        <div>
+            <a href="@($"/clients/edit?id={clients.Id}")">Редактировать</a> |
+            <a href="@($"/clients")">Назад к списку</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Clients? clients;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        clients = await context.Clients.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (clients is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

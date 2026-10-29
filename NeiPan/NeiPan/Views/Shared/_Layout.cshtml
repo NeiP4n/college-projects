@@ -1,0 +1,210 @@
+﻿@using System.IO
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NeiPan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/NeiPan.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- Отладочная информация -->
+    <div id="load-status">Загрузка...</div>
+
+    <!-- Ползунок громкости -->
+    <div class="volume-control">
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
+    </div>
+
+    <!-- Аудио -->
+    <audio id="rain-sound" loop>
+        <source src="@Url.Content("~/sounds/rain.mp3")" type="audio/mpeg">
+        Ваш браузер не поддерживает тег audio.
+    </audio>
+
+    <!-- Кнопка управления звуком -->
+    <button id="toggle-rain">🔇 Выключить звук дождя</button>
+
+    <!-- Приветственный текст -->
+    <div class="text-center fade-out-text">
+        <h1 class="display-4">Добро Пожаловать</h1>
+    </div>
+
+    <!-- Фоновое видео -->
+    <video autoplay muted loop id="bgVideo">
+        <source src="@Url.Content("~/videos/bg.mp4")" type="video/mp4">
+        Ваш браузер не поддерживает тег video.
+    </video>
+
+    <!-- Оверлей -->
+    <div class="overlay"></div>
+
+    <!-- Панель 1 (с аватаром и информацией) -->
+    <div class="content-panel" id="panel-1">
+        <div class="content-inner">
+            <div class="avatar-container">
+                <img src="@Url.Content("~/avatars/avatar.png")" alt="NeiPan" class="avatar" />
+            </div>
+            <h1>NeiPan</h1>
+            <p>Unity Game Developer C# <br />&& <br /> Aseprite Designer</p>
+        </div>
+    </div>
+
+    <!-- Панель 2 (с социальными иконками) -->
+    <div class="content-panel" id="panel-2">
+        <div class="content-inner">
+            <br>
+            <br>
+            <br>
+            <h1>Обо мне</h1>
+            <div class="button-container">
+                @{
+                    var socialLinks = new Dictionary<string, string>
+                {
+                { "github.png", "https://github.com/NeyWoJei" },
+                { "youtube.png", "https://www.youtube.com/@Nei-Pan" },
+                { "itchio.png", "https://neipan.itch.io/" },
+                { "discord.png", "https://discord.com/users/453105571676028939" },
+                { "steam.png", "https://steamcommunity.com/id/Neyw0P4n/" },
+                { "osu.png", "https://osu.ppy.sh/users/31094300" },
+                { "lichess.png", "https://lichess.org/@/JekaJeka0" }
+                };
+                }
+                @foreach (var item in socialLinks)
+                {
+                    <button class="icon-button" data-url="@item.Value">
+                        <img src="@Url.Content("~/Icons/" + item.Key)" alt="@System.IO.Path.GetFileNameWithoutExtension(item.Key)" class="social-icon" asp-append-version="true" />
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контейнер -->
+    <div class="content-wrapper">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Элементы
+            const rainAudio = document.getElementById('rain-sound');
+            const volumeSlider = document.getElementById('volume-slider');
+            const toggleBtn = document.getElementById('toggle-rain');
+            const bgVideo = document.getElementById('bgVideo');
+            const overlay = document.querySelector('.overlay');
+            const panel1 = document.getElementById('panel-1');
+            const panel2 = document.getElementById('panel-2');
+            const loadStatus = document.getElementById('load-status');
+            let isPlaying = false;
+
+            // Проверка на наличие элементов
+            if (!rainAudio || !volumeSlider || !toggleBtn || !bgVideo || !overlay || !panel1 || !panel2 || !loadStatus) {
+                console.error('Один из элементов не найден:', { rainAudio, volumeSlider, toggleBtn, bgVideo, overlay, panel1, panel2, loadStatus });
+                return;
+            }
+
+            // Начальная настройка звука
+            rainAudio.volume = 0.5;
+            volumeSlider.value = 0.5;
+
+            // Воспроизведение звука после взаимодействия
+            toggleBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    rainAudio.pause();
+                    toggleBtn.textContent = '🔈 Включить звук дождя';
+                } else {
+                    rainAudio.play().then(() => {
+                        toggleBtn.textContent = '🔇 Выключить звук дождя';
+                    }).catch(err => console.warn("Ошибка воспроизведения звука:", err));
+                }
+                isPlaying = !isPlaying;
+            });
+
+            // Регулировка громкости
+            volumeSlider.addEventListener('input', () => {
+                rainAudio.volume = volumeSlider.value;
+            });
+
+            // Анимация исчезновения текста "Добро Пожаловать"
+            setTimeout(() => {
+                const welcomeText = document.querySelector('.fade-out-text');
+                if (welcomeText) {
+                    welcomeText.classList.add('fade');
+                    setTimeout(() => welcomeText.remove(), 500);
+                }
+            }, 2000);
+
+            // Загрузка иконок и отображение панелей
+            const icons = document.querySelectorAll('.social-icon');
+            let loadedCount = 0;
+
+            const showPanels = () => {
+                bgVideo.classList.add('blurred');
+                overlay.classList.add('darken');
+                panel1.classList.add('show');
+                panel2.classList.add('show');
+            };
+
+            if (icons.length === 0) {
+                loadStatus.textContent = 'Иконок нет, показываем панели...';
+                setTimeout(showPanels, 1000);
+            } else {
+                icons.forEach(img => {
+                    img.addEventListener('load', () => {
+                        loadedCount++;
+                        loadStatus.textContent = `Загружено ${loadedCount} из ${icons.length} иконок`;
+                        if (loadedCount === icons.length) {
+                            loadStatus.textContent = 'Все иконки загружены!';
+                            setTimeout(() => loadStatus.remove(), 500);
+                            setTimeout(showPanels, 1000);
+                        }
+                    });
+                    img.addEventListener('error', () => {
+                        loadedCount++;
+                        loadStatus.textContent = `Ошибка загрузки иконки: ${img.alt}`;
+                        if (loadedCount === icons.length) {
+                            loadStatus.textContent = 'Загрузка завершена с ошибками';
+                            setTimeout(() => loadStatus.remove(), 500);
+                            setTimeout(showPanels, 1000);
+                        }
+                    });
+                });
+
+                // Таймаут на случай, если иконки не загрузились
+                setTimeout(() => {
+                    if (loadedCount < icons.length) {
+                        loadStatus.textContent = 'Не все иконки загружены, продолжаем...';
+                        setTimeout(() => loadStatus.remove(), 500);
+                        setTimeout(showPanels, 1000);
+                    }
+                }, 3000);
+            }
+
+            // Обработка кликов по иконкам
+            document.querySelectorAll('.icon-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const url = button.getAttribute('data-url');
+                    window.open(url, '_blank');
+                });
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

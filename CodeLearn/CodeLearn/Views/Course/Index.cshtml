@@ -1,0 +1,117 @@
+@model CodeLearn.Models.LearningModule
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/lesson/course.css" asp-append-version="true" />
+}
+
+@section FullPage {
+
+<canvas id="bg-canvas"></canvas>
+<canvas id="rain-canvas"></canvas>
+<canvas id="stars-canvas"></canvas>
+<canvas id="fog-canvas"></canvas>
+<div class="crt-scanlines"></div>
+<div class="crt-overlay"></div>
+
+<div class="px-page">
+  <div class="px-container">
+
+    <!-- Хлебные крошки -->
+    <nav class="breadcrumb">
+      <a asp-controller="Main" asp-action="Index" class="breadcrumb-item breadcrumb-link">
+        <span class="bc-arrow">←</span> Карта
+      </a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item active">@Model.Title.StripEmoji()</span>
+    </nav>
+
+    <!-- Заголовок -->
+    <div class="px-title">@Model.Title.StripEmoji()</div>
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+      <div class="px-desc">@Model.Description</div>
+    }
+
+    <!-- Прогресс модуля -->
+    @{
+      var completedIds = ViewBag.CompletedLessonIds as HashSet<int> ?? new HashSet<int>();
+      var accessibleIds = ViewBag.AccessibleLessonIds as HashSet<int> ?? new HashSet<int>();
+      var total = Model.Lessons.Count;
+      var done  = Model.Lessons.Count(l => completedIds.Contains(l.Id));
+      var pct   = total > 0 ? (done * 100 / total) : 0;
+    }
+    <div class="module-progress">
+      <span class="module-progress-label">Пройдено</span>
+      <div class="module-progress-bar">
+        <div class="module-progress-fill" style="width:@(pct)%"></div>
+      </div>
+      <span class="module-progress-val">@done / @total</span>
+    </div>
+
+    <!-- Список уроков -->
+    @if (!Model.Lessons.Any())
+    {
+      <div class="lesson-empty">Уроков пока нет</div>
+    }
+    else
+    {
+      <div class="lesson-list">
+        @for (int i = 0; i < Model.Lessons.Count; i++)
+        {
+          var lesson      = Model.Lessons[i];
+          var num         = (i + 1).ToString("D2");
+          var isCompleted = completedIds.Contains(lesson.Id);
+          // Урок доступен по прохождению (первый ИЛИ предыдущий пройден) и не заблокирован админом
+          var isAccessible = accessibleIds.Contains(lesson.Id) && !lesson.IsLocked;
+          var isCurrent    = isAccessible && !isCompleted;
+          var isLocked     = !isAccessible;
+
+          if (isLocked)
+          {
+            <div class="lesson-item lesson-item--locked" tabindex="-1" aria-disabled="true">
+              <div class="lesson-item-num">@num</div>
+              <div class="lesson-item-body">
+                <div class="lesson-item-title">@lesson.Title.StripEmoji()</div>
+              </div>
+              <div class="lesson-item-status lesson-item-status--locked">X</div>
+            </div>
+          }
+          else if (isCompleted)
+          {
+            <a asp-controller="Lesson" asp-action="Index" asp-route-id="@lesson.Id"
+               class="lesson-item lesson-item--done" tabindex="0" role="button">
+              <div class="lesson-item-num lesson-item-num--done">@num</div>
+              <div class="lesson-item-body">
+                <div class="lesson-item-title">@lesson.Title.StripEmoji()</div>
+              </div>
+              <div class="lesson-item-status lesson-item-status--done">✓</div>
+            </a>
+          }
+          else
+          {
+            <a asp-controller="Lesson" asp-action="Index" asp-route-id="@lesson.Id"
+               class="lesson-item lesson-item--current" tabindex="0" role="button">
+              <div class="lesson-item-num">@num</div>
+              <div class="lesson-item-body">
+                <div class="lesson-item-title">@lesson.Title.StripEmoji()</div>
+              </div>
+              <div class="lesson-item-arrow">►</div>
+              <div class="lesson-item-status lesson-item-status--active">►</div>
+            </a>
+          }
+        }
+      </div>
+    }
+
+  </div>
+</div>
+
+<script src="~/js/lesson/effects.js" asp-append-version="true"></script>
+<script>
+document.querySelectorAll('.lesson-item[tabindex="0"]').forEach(function(el) {
+  el.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+  });
+});
+</script>
+}

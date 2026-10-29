@@ -1,0 +1,23 @@
+﻿<script>
+    setTimeout(function() {
+        document.querySelector('.fade-out-text').classList.add('fade');
+    }, 1000);  // Скрыть текст через 1 секунду
+</script>
+<script>
+    setTimeout(function() {
+        document.querySelector('#bgVideo').classList.add('blurred');
+    }, 1700);  // Применить эффект размытия через 1.7 секунды
+</script>
+<script>
+    setTimeout(function() {
+        document.querySelector('#bgVideo').classList.add('blurred'); // Размытие видео
+        document.querySelector('.overlay').style.background = 'rgba(0, 0, 0, 0.5)'; // Добавить полупрозрачную черную панель
+        document.querySelector('.content-panel').classList.add('show'); // Показать панель с контентом
+
+        // Плавно сделать элементы внутри панели видимыми
+        const elements = document.querySelectorAll('.content-inner h1, .content-inner p, .content-inner button');
+        elements.forEach(function(element) {
+            element.classList.add('show');
+        });
+    }, 2000);  // Через 2 секунды
+</script>

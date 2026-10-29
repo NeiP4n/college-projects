@@ -1,0 +1,159 @@
+/* ── Flowy-плеер: компактный YouTube-плеер (слева сверху) ── */
+.flowy {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 9995;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 9px 11px;
+    background: rgba(10, 10, 16, 0.9);
+    border: 2px solid var(--border, #2a2a2a);
+    backdrop-filter: blur(6px);
+    font-family: var(--px, monospace);
+    pointer-events: auto;
+    box-sizing: border-box;
+}
+
+.flowy-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+/* Пиксельная иконка-нота */
+.flowy-logo {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #161620;
+    border: 1px solid #2a2a2a;
+    color: #7c6fff;
+}
+.flowy-logo.playing { color: #00e5ff; border-color: #00e5ff; }
+.flowy-logo { cursor: grab; }
+.flowy.dragging { opacity: 0.92; }
+.flowy.dragging .flowy-logo { cursor: grabbing; }
+
+/* Свёрнутая панель — только логотип (он же кнопка «развернуть») */
+.flowy.collapsed { width: auto; }
+.flowy.collapsed .flowy-row > *:not(.flowy-logo),
+.flowy.collapsed .flowy-row.flowy-controls,
+.flowy.collapsed .flowy-bar,
+.flowy.collapsed .flowy-meta,
+.flowy.collapsed .flowy-screen { display: none; }
+
+/* Видео-окошко: видимый «экран», размер меняется перетаскиванием угла */
+.flowy-screen {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    min-width: 160px;
+    min-height: 90px;
+    max-width: 720px;
+    max-height: 540px;
+    border: 1px solid #2a2a2a;
+    background: #000;
+    overflow: hidden;
+    resize: both;            /* грабер в правом-нижнем углу */
+    box-sizing: border-box;
+}
+/* Хосты YouTube / SoundCloud / Spotify заполняют экран */
+.flowy-embed, .flowy-yt {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    left: 0; top: 0;
+    pointer-events: none;    /* управление — нашими кнопками */
+}
+.flowy-embed iframe, .flowy-yt iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+.flowy-vibe {
+    flex: 1;
+    min-width: 0;
+    background: #0d0d14;
+    border: 1px solid #2a2a2a;
+    color: #eee;
+    font-family: var(--px, monospace);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    box-sizing: border-box;
+}
+.flowy-vibe:focus { border-color: #7c6fff; }
+.flowy-vibe::placeholder { color: #555; }
+
+.flowy-btn {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    background: #161620;
+    border: 1px solid #2a2a2a;
+    color: #cfcfe6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.flowy-btn:hover { background: #23233a; border-color: #7c6fff; color: #fff; }
+.flowy-btn:active { transform: translateY(1px); }
+
+.flowy svg { width: 16px; height: 16px; fill: currentColor; display: block; image-rendering: pixelated; }
+.flowy-logo svg { width: 18px; height: 18px; }
+
+.flowy-vol {
+    font-family: var(--px, monospace);
+    font-size: 10px;
+    color: #888;
+    min-width: 34px;
+    text-align: center;
+}
+
+/* Прогресс-бар */
+.flowy-bar {
+    height: 8px;
+    background: #1a1a26;
+    border: 1px solid #2a2a2a;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.flowy-bar-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7c6fff, #00e5ff);
+    transition: width 0.25s linear;
+}
+
+/* Название + время */
+.flowy-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.flowy-now {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--px, monospace);
+    font-size: 9px;
+    color: #9a8fff;
+    letter-spacing: 0.3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.flowy-time {
+    font-family: var(--px, monospace);
+    font-size: 9px;
+    color: #666;
+    flex-shrink: 0;
+}
+

@@ -1,0 +1,104 @@
+=== Lesson 921: Классы и объекты ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] quiz
+  [200] checkpoint
+=== Lesson 922: Поля, свойства, автосвойства ===
+  [200] text
+  [200] code
+  [200] fix_bug
+  [200] fill_blank
+  [200] quiz
+  [200] knowledge_check
+=== Lesson 923: Конструкторы ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] drag_order
+  [200] quiz
+=== Lesson 924: Модификаторы доступа ===
+  [200] text
+  [200] code
+  [200] fix_bug
+  [200] quiz
+  [200] knowledge_check
+  [200] transfer_test
+=== Lesson 925: Статические члены и Singleton ===
+  [200] text
+  [200] compare_variants
+  [200] code
+  [200] mini_task
+  [200] quiz
+=== Lesson 926: Перегрузка операторов ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] fix_bug
+  [200] quiz
+  [200] mini_task
+=== Lesson 927: Record-типы ===
+  [200] text
+  [200] semantic_diff
+  [200] code
+  [200] prediction
+  [200] quiz
+  [200] transfer_test
+=== Lesson 928: Struct vs Class ===
+  [200] text
+  [200] prediction
+  [200] compare_variants
+  [200] fix_bug
+  [200] mini_task
+  [200] knowledge_check
+=== Lesson 929: Наследование и base ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] quiz
+  [200] counterfactual
+=== Lesson 930: virtual, override, abstract ===
+  [200] text
+  [200] prediction
+  [200] code
+  [200] fix_bug
+  [200] fill_blank
+  [200] quiz
+=== Lesson 931: Абстрактные классы ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] transfer_test
+=== Lesson 932: Интерфейсы ===
+  [200] text
+  [200] two_path
+  [200] code
+  [200] mini_task
+  [200] quiz
+=== Lesson 933: Полиморфизм ===
+  [200] text
+  [200] constraint
+  [200] code
+  [200] prediction
+  [200] mutation
+=== Lesson 934: sealed и new ===
+  [200] text
+  [200] compare_variants
+  [200] code
+  [200] prediction
+  [200] quiz
+  [200] knowledge_check
+=== Lesson 935: Паттерн-матчинг с типами ===
+  [200] text
+  [200] code_to_intent
+  [200] code
+  [200] code_to_intent
+  [200] mini_task
+  [200] prediction
+  [200] transfer_test
+
+=== Все блоки отправлены! ===

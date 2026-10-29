@@ -1,0 +1,151 @@
+# deps.yaml — граф зависимостей CodeLearn
+# updated: 2026-05-23
+# Только реальные зависимости, выявленные из imports/usings/injections
+
+dependencies:
+
+  # ── Presentation Layer ────────────────────────────────────────────
+  Views/Lesson/Index.cshtml:
+    - Controllers/LessonController.cs       # model/data source
+    - Models/Lesson.cs                      # @model
+    - Models/ContentBlock.cs                # блоки урока
+    - wwwroot/css/lesson/lesson.css         # стили
+    - wwwroot/js/lesson.js                  # (если вынесен)
+
+  Views/Builder/Index.cshtml:
+    - Controllers/BuilderApiController.cs   # REST target
+    - wwwroot/js/builder.js                 # drag-drop логика
+
+  Views/Account/Login.cshtml:
+    - Controllers/AccountController.cs
+    - Services/AuthService.cs               # через controller
+
+  Views/Course/Index.cshtml:
+    - Controllers/CourseController.cs
+    - Models/Course.cs
+    - Models/LearningModule.cs
+
+  # ── Controllers ───────────────────────────────────────────────────
+  Controllers/LessonController.cs:
+    - Data/AppDbContext.cs                  # EF queries
+    - Models/Lesson.cs
+    - Models/ContentBlock.cs
+    - Models/UserLessonProgress.cs
+    - Models/UserLessonCompletion.cs
+    - Models/UserLessonError.cs
+    - Helpers/InputSanitizer.cs
+
+  Controllers/BuilderApiController.cs:      # CRITICAL: LocalOnly
+    - Data/AppDbContext.cs
+    - Models/Lesson.cs
+    - Models/ContentBlock.cs
+    - Models/LearningModule.cs
+    - Models/Course.cs
+    - Helpers/LocalOnlyAttribute.cs         # security guard
+
+  Controllers/AccountController.cs:
+    - Services/AuthService.cs
+    - Services/EmailService.cs
+    - Services/RegistrationFlowService.cs
+    - Models/AppUser.cs
+    - Helpers/AppUserClaimsPrincipalFactory.cs
+
+  Controllers/AiTutorController.cs:
+    - Data/AppDbContext.cs
+    - Models/UserAiUsage.cs
+    - Helpers/LocalOnlyAttribute.cs         # или auth check
+
+  Controllers/ApiRunController.cs:
+    - Helpers/InputSanitizer.cs
+
+  Controllers/CourseController.cs:
+    - Data/AppDbContext.cs
+    - Models/Course.cs
+    - Models/LearningModule.cs
+    - Models/Lesson.cs
+
+  Controllers/ProfileController.cs:
+    - Data/AppDbContext.cs
+    - Services/AvatarService.cs
+    - Models/AppUser.cs
+
+  Controllers/MainController.cs:
+    - Data/AppDbContext.cs
+    - Models/Course.cs
+
+  # ── Services ──────────────────────────────────────────────────────
+  Services/AuthService.cs:
+    - Data/AppDbContext.cs
+    - Models/AppUser.cs
+
+  Services/EmailService.cs:
+    - (SMTP config from appsettings.json)
+
+  Services/AvatarService.cs:
+    - Helpers/AvatarHelper.cs
+    - Models/AppUser.cs
+
+  Services/RegistrationFlowService.cs:
+    - Data/AppDbContext.cs
+    - Models/AppUser.cs
+    - Services/EmailService.cs
+
+  # ── Data / Infrastructure ─────────────────────────────────────────
+  Data/AppDbContext.cs:                     # CRITICAL: единая точка доступа к БД
+    - Models/AppUser.cs
+    - Models/Lesson.cs
+    - Models/ContentBlock.cs
+    - Models/LearningModule.cs
+    - Models/Course.cs
+    - Models/LessonComment.cs
+    - Models/UserLessonCompletion.cs
+    - Models/UserLessonError.cs
+    - Models/UserLessonProgress.cs
+    - Models/UserAiUsage.cs
+
+  Data/CSharpSeeder.cs:
+    - Data/AppDbContext.cs
+    - Models/LearningModule.cs
+    - Models/Lesson.cs
+
+  Data/CSharpContentSeeder.cs:
+    - Data/AppDbContext.cs
+    - Models/ContentBlock.cs
+    - Models/Lesson.cs
+
+  # ── Helpers ───────────────────────────────────────────────────────
+  Helpers/LocalOnlyAttribute.cs:
+    - (Microsoft.AspNetCore.Mvc — ActionFilterAttribute)
+
+  Helpers/AppUserClaimsPrincipalFactory.cs:
+    - Models/AppUser.cs
+    - (ASP.NET Core Identity)
+
+  Helpers/InputSanitizer.cs:
+    - (standalone, no dependencies)
+
+  Helpers/AvatarHelper.cs:
+    - (standalone, no dependencies)
+
+  # ── MCP Server (external tooling) ─────────────────────────────────
+  codelearn_mcp.py:
+    - Controllers/BuilderApiController.cs   # HTTP target (localhost:5003)
+    - (FastMCP library — stdio transport)
+
+  # ── Models (no internal deps, map to DB tables) ───────────────────
+  Models/AppUser.cs:        []
+  Models/Lesson.cs:         []
+  Models/ContentBlock.cs:   []
+  Models/LearningModule.cs: []
+  Models/Course.cs:         []
+  Models/LessonComment.cs:  []
+  Models/UserLessonCompletion.cs: []
+  Models/UserLessonError.cs: []
+  Models/UserLessonProgress.cs: []
+  Models/UserAiUsage.cs:    []
+
+critical_dependencies:
+  - Data/AppDbContext.cs         # все контроллеры зависят от него
+  - Helpers/LocalOnlyAttribute.cs # единственная защита Builder API
+  - Controllers/BuilderApiController.cs  # основной способ управления контентом
+  - Views/Lesson/Index.cshtml    # рендерит все 20+ типов блоков

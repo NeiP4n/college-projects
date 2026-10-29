@@ -1,0 +1,12 @@
+﻿.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+scripts/.env
+scripts/api_keys.json
+.env
+
+# Секреты приложения — НЕ коммитим (есть appsettings.example.json как шаблон)
+CodeLearn/appsettings.json
+CodeLearn/appsettings.Development.json

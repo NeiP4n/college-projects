@@ -1,0 +1,902 @@
+@model List<CodeLearn.Models.LearningModule>
+@{
+    Layout = null;
+    var ic      = System.Globalization.CultureInfo.InvariantCulture;
+    var course  = ViewBag.Course  as CodeLearn.Models.Course;
+    var objects = ViewBag.Objects as List<CodeLearn.Models.MapObject> ?? new();
+    var courseId = course?.Id ?? 1;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Редактор карты — @course?.Title</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/base/pixel.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/base.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/layout.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/map.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/levels.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/ui.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/animations.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/main/effects.css" asp-append-version="true">
+    <style>
+        /* ── Инструменты редактора (поверх карты, fixed) ── */
+        .me-toolbar {
+            position: fixed; top: 0; left: 0; right: 340px; height: 40px;
+            background: rgba(0,0,0,.9); border-bottom: 1px solid #2a2a2a;
+            display: flex; align-items: center; gap: 10px; padding: 0 14px;
+            z-index: 99000; pointer-events: auto;
+        }
+        .me-title { font-family: var(--px); font-size: 7px; letter-spacing: 2px; color: #7c6fff; flex:1; }
+        .me-btn {
+            font-family: var(--px); font-size: 7px; padding: 5px 9px;
+            border: 1px solid #333; background: #111; color: #aaa;
+            cursor: pointer; letter-spacing: 1px; white-space: nowrap;
+        }
+        .me-btn:hover { background: #222; border-color: #666; color: #fff; }
+        .me-btn.accent { border-color: #7c6fff; color: #7c6fff; }
+        .me-btn.accent:hover { background: #7c6fff; color: #000; }
+
+        /* ── Правая панель ── */
+        .me-panel {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 340px;
+            background: rgba(8,8,12,.97); border-left: 2px solid #1a1a1a;
+            display: flex; flex-direction: column; z-index: 99000; overflow: hidden;
+        }
+        .me-panel-head {
+            padding: 10px 14px; border-bottom: 2px solid #1a1a1a;
+            font-family: var(--px); font-size: 7px; letter-spacing: 2px; color: #7c6fff;
+            background: #0a0a0f; flex-shrink: 0;
+        }
+        .me-tabs { display: flex; border-bottom: 2px solid #1a1a1a; flex-shrink: 0; }
+        .me-tab {
+            flex: 1; font-family: var(--px); font-size: 6px; padding: 9px 2px;
+            background: none; border: none; color: #444; cursor: pointer; letter-spacing: 1px;
+            border-right: 1px solid #1a1a1a;
+        }
+        .me-tab:last-child { border-right: none; }
+        .me-tab.active { color: #fff; background: rgba(124,111,255,.07); }
+        .me-tab-body { display: none; flex: 1; overflow-y: auto; padding: 12px; }
+        .me-tab-body.active { display: block; }
+
+        .me-section { margin-bottom: 14px; }
+        .me-lbl {
+            font-family: var(--px); font-size: 6px; color: #444;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; display: block;
+        }
+        .me-input {
+            width: 100%; background: #0d0d14; border: 1px solid #222; color: #ccc;
+            font-family: var(--px); font-size: 8px; padding: 6px 8px; margin-bottom: 5px;
+            box-sizing: border-box;
+        }
+        .me-input:focus { outline: none; border-color: #7c6fff; }
+        .me-row { display: flex; gap: 5px; }
+        .me-row .me-input { flex: 1; }
+        .me-wide { width: 100%; margin-top: 4px; }
+
+        .me-mod-item {
+            display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+            border: 1px solid #1a1a1a; margin-bottom: 3px; cursor: pointer; border-radius: 2px;
+        }
+        .me-mod-item:hover { background: #111; border-color: #2a2a2a; }
+        .me-mod-item.sel { border-color: #7c6fff; background: #1a1a2e; }
+        .me-mod-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .me-mod-name { font-family: var(--px); font-size: 6px; color: #ccc; flex: 1; }
+        .me-mod-xy { font-family: var(--px); font-size: 6px; color: #333; }
+
+        .me-presets { display: flex; flex-wrap: wrap; gap: 5px; }
+        .me-preset {
+            width: 48px; height: 48px; background: #0d0d14; border: 1px solid #222;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px;
+        }
+        .me-preset:hover { border-color: #7c6fff; background: #1a1a2e; }
+        .me-preset svg, .me-preset img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Выделение модуля — только в режиме правки */
+        body.me-edit .me-module-node { cursor: grab !important; }
+        body.me-edit .me-module-node.me-sel { outline: 2px solid #7c6fff !important; outline-offset: 2px; }
+        body.me-edit .me-module-node:active { cursor: grabbing !important; }
+
+        /* Объекты */
+        .me-obj { position: absolute; }
+        /* .levels-main по умолчанию pointer-events:none — в режиме правки включаем,
+           иначе объекты (и клик по пустому месту для размещения) не ловят мышь */
+        body.me-edit #levelsMain { pointer-events: auto; }
+        body.me-edit .me-obj { cursor: grab; pointer-events: auto; }
+        body.me-edit .me-obj svg,
+        body.me-edit .me-obj img,
+        body.me-edit .me-obj span { pointer-events: none; } /* клик ловит сам .me-obj */
+        body.me-edit .me-obj:hover { outline: 1px dashed rgba(124,111,255,.5); }
+        body.me-edit .me-obj.me-sel { outline: 2px solid #7c6fff; }
+        .me-obj-del {
+            position: absolute; top: -18px; right: -1px;
+            font-family: var(--px); font-size: 7px; padding: 2px 5px;
+            background: #1a1a2e; border: 1px solid #7c6fff; color: #fff; cursor: pointer;
+            display: none; z-index: 2;
+        }
+        body.me-edit .me-obj.me-sel .me-obj-del { display: block; }
+        /* Ручка ресайза (правый-нижний угол) — тянет ширину И высоту */
+        .me-obj-resize {
+            position: absolute; right: -6px; bottom: -6px;
+            width: 13px; height: 13px; background: #7c6fff; border: 1px solid #fff;
+            cursor: nwse-resize; display: none; z-index: 3; pointer-events: auto;
+        }
+        body.me-edit .me-obj.me-sel .me-obj-resize { display: block; }
+        /* В режиме просмотра объекты не перехватывают клики (как на реальной карте) */
+        body:not(.me-edit) .me-obj { pointer-events: none; }
+
+        /* Тултип координат */
+        #me-tip {
+            position: fixed; background: rgba(0,0,0,.85); color: #7c6fff;
+            font-family: var(--px); font-size: 7px; padding: 3px 8px;
+            pointer-events: none; display: none; z-index: 99999;
+        }
+        /* Режим размещения */
+        body.me-placing .main-container { cursor: crosshair; }
+        #me-place-hint {
+            position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,.9); color: #ffd700; font-family: var(--px);
+            font-size: 8px; padding: 7px 16px; border: 1px solid #ffd700;
+            display: none; z-index: 99999; pointer-events: none;
+        }
+        /* Статус */
+        #me-status { font-family: var(--px); font-size: 7px; color: #4caf50; }
+    </style>
+</head>
+<body>
+
+<!-- Тулбар -->
+<div class="me-toolbar">
+    <span class="me-title">🗺 РЕДАКТОР КАРТЫ — @course?.Title?.ToUpperInvariant()</span>
+    <span id="me-status"></span>
+    <label class="me-edit-toggle" style="font-family:var(--px);font-size:7px;color:#ffd700;display:flex;align-items:center;gap:5px;cursor:pointer;letter-spacing:1px">
+        <input type="checkbox" id="me-edit-chk" checked onchange="setEditMode(this.checked)"> Режим правки
+    </label>
+    <button class="me-btn" onclick="extendDown()" title="Убрать место сверху">− верх</button>
+    <span id="me-ext-lbl" style="font-family:var(--px);font-size:7px;color:#7c6fff;min-width:46px;text-align:center">+0px</span>
+    <button class="me-btn" onclick="extendUp()" title="Добавить место сверху (низ не трогается)">+ верх</button>
+    <button class="me-btn" onclick="extendReset()" title="Сбросить">⟳</button>
+    <a href="/Builder" class="me-btn">← Builder</a>
+</div>
+
+<div id="me-tip"></div>
+<div id="me-place-hint">Кликни на карту · ESC — отмена</div>
+
+<!-- ══ ГЛАВНАЯ СТРАНИЦА (точная копия) ══════════════════════════════ -->
+<div class="main-container">
+<div class="screen-main">
+
+    <div class="background">
+        <img class="bg-map" src="/img/main/background/bg-map.png">
+        <img class="swords" src="/img/main/decor/swords.png">
+    </div>
+    <img class="mountain-left"  src="/img/main/decor/mountain.svg">
+    <img class="mountain-right" src="/img/main/decor/mountain.svg">
+    <img class="castle castle-1" src="/img/main/decor/castle.svg">
+    <img class="castle castle-2" src="/img/main/decor/castle.svg">
+
+    <div class="levels-main" id="levelsMain">
+        <img class="levels-bg" src="/img/main/levels/levels-background.svg">
+
+        <!-- Декоративные объекты карты -->
+        @foreach (var obj in objects)
+        {
+            var ts = $"translate(-50%,-50%) rotate({obj.Rotation.ToString("F1", ic)}deg)";
+            var hStyle = obj.Height > 0 ? $"height:{obj.Height}px;" : "";
+            var invStyle = obj.Invert ? "filter:invert(1);" : "";
+            <div class="me-obj" data-oid="@obj.Id" data-type="@obj.Type" data-invert="@(obj.Invert ? "1" : "0")"
+                 style="left:@(obj.MapX.ToString("F2",ic))%;top:@(obj.MapY.ToString("F2",ic))%;width:@(obj.Width)px;@(hStyle)@(invStyle)z-index:@obj.ZIndex;transform:@ts"
+                 onclick="selectObj(this)" onmousedown="startObjDrag(event,this)">
+                <button class="me-obj-del" onclick="delObj(event,@obj.Id)">✕</button>
+                <div class="me-obj-resize" onmousedown="startObjResize(event,this)"></div>
+                @if (obj.Type == "svg_inline") { @Html.Raw(obj.Src) }
+                else if (obj.Type == "image_url") { <img src="@obj.Src" style="width:100%;display:block"> }
+                else { <span style="font-size:200%;line-height:1;display:block;text-align:center">@obj.Src</span> }
+            </div>
+        }
+
+        <!-- Модули -->
+        <div class="levels-map">
+        @foreach (var module in Model)
+        {
+            var c = string.IsNullOrEmpty(module.Color) ? (module.IsChallenge ? "#ffd700" : "#fff") : module.Color;
+            var ps = $"left:{module.MapX.ToString("F1",ic)}%;top:{module.MapY.ToString("F1",ic)}%;--node-color:{c};--label-size:{module.LabelFontSize}px";
+            if (module.IsChallenge)
+            {
+                <div class="level level-challenge me-module-node" data-mid="@module.Id" style="@ps"
+                     onmousedown="startModDrag(event,this)">
+                    <div class="pixel-challenge-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" shape-rendering="crispEdges" fill="none">
+                            <rect class="ch-base" x="18" y="42" width="12" height="4"/>
+                            <rect class="ch-base" x="14" y="40" width="20" height="2"/>
+                            <rect class="ch-body" x="10" y="16" width="28" height="22"/>
+                            <rect class="ch-dark" x="12" y="18" width="24" height="18"/>
+                            <rect class="ch-shine" x="12" y="18" width="4" height="18"/>
+                            <rect class="ch-shine" x="12" y="18" width="24" height="3"/>
+                            <rect class="ch-body" x="6"  y="18" width="4"  height="12"/>
+                            <rect class="ch-body" x="38" y="18" width="4"  height="12"/>
+                            <rect class="ch-dark" x="8"  y="20" width="2"  height="8"/>
+                            <rect class="ch-base" x="8"  y="14" width="32" height="2"/>
+                            <rect class="ch-star" x="22" y="22" width="4"  height="4"/>
+                            <rect class="ch-star" x="20" y="24" width="8"  height="2"/>
+                            <rect class="ch-star" x="18" y="26" width="12" height="2"/>
+                            <rect class="ch-star" x="20" y="28" width="8"  height="2"/>
+                            <rect class="ch-star" x="22" y="30" width="4"  height="2"/>
+                        </svg>
+                        <span class="pixel-challenge-label">@module.Title.StripEmoji()</span>
+                        <span class="pixel-challenge-badge">ИСПЫТАНИЕ</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="level me-module-node" data-mid="@module.Id" style="@ps"
+                     onmousedown="startModDrag(event,this)">
+                    <div class="pixel-folder">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 40" shape-rendering="crispEdges" fill="none">
+                            <rect class="f-tab"    x="2"  y="2"  width="14" height="4"/>
+                            <rect class="f-tab"    x="16" y="4"  width="2"  height="2"/>
+                            <rect class="f-edge"   x="2"  y="6"  width="44" height="30"/>
+                            <rect class="f-dark"   x="4"  y="8"  width="40" height="26"/>
+                            <rect class="f-body"   x="4"  y="8"  width="40" height="26"/>
+                            <rect class="f-shine"  x="4"  y="8"  width="40" height="3"/>
+                            <rect class="f-shine"  x="4"  y="11" width="2"  height="23"/>
+                            <rect class="f-edge"   x="4"  y="8"  width="2"  height="2"/>
+                            <rect class="f-edge"   x="42" y="8"  width="2"  height="2"/>
+                            <rect class="f-edge"   x="4"  y="32" width="2"  height="2"/>
+                            <rect class="f-edge"   x="42" y="32" width="2"  height="2"/>
+                            <rect class="f-shadow" x="4"  y="33" width="40" height="2"/>
+                            <rect class="f-shadow" x="43" y="9"  width="2"  height="24"/>
+                            <rect class="f-edge"   x="22" y="20" width="4"  height="2"/>
+                            <rect class="f-edge"   x="21" y="22" width="6"  height="3"/>
+                        </svg>
+                        <span class="pixel-folder-label">@module.Title.StripEmoji()</span>
+                    </div>
+                    <span>@module.Title.StripEmoji()</span>
+                </div>
+            }
+        }
+        </div>
+    </div>
+
+    <div id="objects"></div>
+    <div id="binaryClouds"></div>
+    <div id="stars" data-theme="csharp"></div>
+    <svg width="0" height="0">
+        <filter id="fog-warp">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.02" numOctaves="2" seed="2" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="60" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+    </svg>
+    <img src="/img/main/background/fog.png" class="fog">
+
+</div><!-- /screen-main -->
+</div><!-- /main-container -->
+
+<!-- ══ ПРАВАЯ ПАНЕЛЬ ════════════════════════════════════════════════ -->
+<div class="me-panel">
+    <div class="me-panel-head">// РЕДАКТОР КАРТЫ</div>
+    <div class="me-tabs">
+        <button class="me-tab active" onclick="showTab('mods')">Модули</button>
+        <button class="me-tab"        onclick="showTab('add')">+ Объект</button>
+        <button class="me-tab"        onclick="showTab('props')">Свойства</button>
+    </div>
+
+    <!-- Вкладка: Модули -->
+    <div class="me-tab-body active" id="tab-mods">
+        <div class="me-section">
+            <span class="me-lbl">Перетащи модуль на карте или выбери здесь</span>
+            @foreach (var module in Model)
+            {
+                var c2 = string.IsNullOrEmpty(module.Color) ? "#fff" : module.Color;
+                <div class="me-mod-item" data-mid="@module.Id" onclick="clickMod(@module.Id)">
+                    <div class="me-mod-dot" style="background:@c2"></div>
+                    <span class="me-mod-name">@module.Title.StripEmoji()</span>
+                    <span class="me-mod-xy" id="mxy-@module.Id">@module.MapX.ToString("F0",ic),@module.MapY.ToString("F0",ic)</span>
+                </div>
+            }
+        </div>
+        <div id="mod-pos-form" style="display:none">
+            <span class="me-lbl">Позиция выбранного</span>
+            <div class="me-row">
+                <input class="me-input" id="mx" type="number" step="0.5" placeholder="X %">
+                <input class="me-input" id="my" type="number" step="0.5" placeholder="Y %">
+            </div>
+            <button class="me-btn accent me-wide" onclick="applyModPos()">Применить</button>
+        </div>
+    </div>
+
+    <!-- Вкладка: Добавить объект (компонентная система) -->
+    <div class="me-tab-body" id="tab-add">
+        <div class="me-section">
+            <span class="me-lbl">Компоненты — клик, затем клик по карте</span>
+            <div class="me-presets" id="presets"></div>
+        </div>
+        <div class="me-section" style="border-top:1px solid #1a1a1a;padding-top:12px">
+            <span class="me-lbl">+ Новый компонент в библиотеку</span>
+            <input type="file" id="fileIn" accept=".png,.jpg,.jpeg,.webp,.svg,.gif" style="display:none">
+            <button class="me-btn me-wide" onclick="document.getElementById('fileIn').click()">📂 Загрузить PNG / SVG</button>
+            <textarea class="me-input" id="svgIn" rows="3" placeholder="<svg...></svg>" style="resize:vertical;font-size:9px;font-family:monospace;margin-top:6px"></textarea>
+            <button class="me-btn me-wide" onclick="addComponentFromSvg()">+ SVG-компонент</button>
+            <input class="me-input" id="emojiIn" placeholder="⚡ emoji / текст" style="margin-top:6px">
+            <button class="me-btn me-wide" onclick="addComponentFromEmoji()">+ Emoji-компонент</button>
+        </div>
+    </div>
+
+    <!-- Вкладка: Свойства -->
+    <div class="me-tab-body" id="tab-props">
+        <div id="no-sel" style="font-family:var(--px);font-size:7px;color:#333;letter-spacing:1px;padding:12px 0">
+            Выбери объект или модуль на карте
+        </div>
+        <div id="obj-form" style="display:none">
+            <div class="me-section">
+                <span class="me-lbl">X % / Y %</span>
+                <div class="me-row">
+                    <input class="me-input" id="ox" type="number" step="0.5">
+                    <input class="me-input" id="oy" type="number" step="0.5">
+                </div>
+            </div>
+            <div class="me-section">
+                <span class="me-lbl">Ширина px / Высота px (0 = авто)</span>
+                <div class="me-row">
+                    <input class="me-input" id="ow" type="number" placeholder="W">
+                    <input class="me-input" id="oh" type="number" placeholder="H">
+                </div>
+            </div>
+            <div class="me-section">
+                <span class="me-lbl">Угол ° / Z-index</span>
+                <div class="me-row">
+                    <input class="me-input" id="or" type="number" step="1" placeholder="°">
+                    <input class="me-input" id="oz" type="number" placeholder="Z">
+                </div>
+            </div>
+            <button class="me-btn me-wide" id="invBtn" style="margin-bottom:6px;border-color:#00e5ff;color:#00e5ff"
+                    onclick="toggleInvert()">◐ Инвертировать цвет</button>
+            <button class="me-btn accent me-wide" onclick="saveObjProps()">Сохранить</button>
+            <button class="me-btn me-wide" style="margin-top:5px;border-color:#f44;color:#f44"
+                    onclick="delSelectedObj()">Удалить объект</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ JS ГЛАВНОЙ СТРАНИЦЫ (масштабирование) ════════════════════════ -->
+<script src="~/lib/perlin.js" asp-append-version="true"></script>
+<script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.min.js"></script>
+<script id="map-modules-data" type="application/json">
+@Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    Model.OrderBy(m => m.Order)
+         .Select(m => new { id=m.Id, order=m.Order, title=m.Title.StripEmoji(),
+                            x=m.MapX, y=m.MapY, color=m.Color,
+                            isUnlocked=!m.IsLocked, isChallenge=m.IsChallenge })))
+</script>
+<script src="~/js/main/spawners/spawnObject.js" asp-append-version="true"></script>
+<script src="~/js/main/spawners/_TreeSpawner.js" asp-append-version="true"></script>
+<script src="~/js/main/spawners/_FlagSpawner.js" asp-append-version="true"></script>
+<script src="~/js/main/animations/levels-animation.js" asp-append-version="true"></script>
+<script src="~/js/main/map-paths.js" asp-append-version="true"></script>
+<script src="~/js/main/animations/cloud-animation.js" asp-append-version="true"></script>
+<script src="~/js/main/effects/perlinField.js" asp-append-version="true"></script>
+<script src="~/js/main/effects/binaryRain.js" asp-append-version="true"></script>
+<script src="~/js/main/effects/fogPerlin.js" asp-append-version="true"></script>
+<script src="~/js/main/effects/starPerlin.js" asp-append-version="true"></script>
+<script src="~/js/main/effects/parallaxEffect.js" asp-append-version="true"></script>
+<script src="~/js/main/logic/start-position.js" asp-append-version="true"></script>
+<script src="~/js/main/map-objects.js" asp-append-version="true"></script>
+
+<!-- ══ ЛОГИКА РЕДАКТОРА ═════════════════════════════════════════════ -->
+<script>
+const COURSE_ID = @courseId;
+
+// ── Расширение карты ВВЕРХ (НЕ масштаб) ───────────────────────────────────────
+// Добавляем свободное место сверху: масштаб карты и позиции объектов НЕ меняются,
+// просто появляется прокручиваемое пространство над картой, низ зафиксирован.
+const screenMain = document.querySelector('.screen-main');
+const mainContainer = document.querySelector('.main-container');
+const TOP_EXT_STEP = 200;
+let topExt = 0;                 // загрузим с сервера ниже (общее для всех игроков)
+let _extSaveT = 0;
+
+function applyTopExt() {
+    if (!mainContainer || !screenMain) return;
+    // Текущий масштаб, выставленный start-position.js (его НЕ трогаем)
+    const m = new DOMMatrix(getComputedStyle(screenMain).transform);
+    const scale = m.a || 1;
+    // Базовая высота контейнера из CSS (250vh) + добавка сверху (в экранных px)
+    mainContainer.style.height = '';
+    const baseH = mainContainer.getBoundingClientRect().height;
+    if (topExt > 0) mainContainer.style.height = (baseH + topExt * scale) + 'px';
+    const lbl = document.getElementById('me-ext-lbl');
+    if (lbl) lbl.textContent = '+' + topExt + 'px';
+}
+
+// Сохраняем расширение на сервер (с задержкой), чтобы его видели все игроки
+function saveTopExt() {
+    clearTimeout(_extSaveT);
+    _extSaveT = setTimeout(() => {
+        fetch('/api/builder/map-settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId: COURSE_ID, topExtPx: topExt })
+        }).catch(() => {});
+    }, 300);
+}
+
+// Минимальный top% для драга (можно тянуть модули/объекты в добавленное место сверху)
+function minTopPct() { return -(topExt / 1280 * 100); }
+
+function extendUp()    { topExt = Math.min(4000, topExt + TOP_EXT_STEP); applyTopExt(); saveTopExt(); window.scrollTo({ top: 0 }); }
+function extendDown()  { topExt = Math.max(0,    topExt - TOP_EXT_STEP); applyTopExt(); saveTopExt(); }
+function extendReset() { topExt = 0; applyTopExt(); saveTopExt(); window.scrollTo({ top: document.body.scrollHeight }); }
+
+// ── Режим правки / просмотра ──────────────────────────────────────────────────
+let editMode = true;
+function setEditMode(on) {
+    editMode = !!on;
+    document.body.classList.toggle('me-edit', editMode);
+    if (!editMode) {
+        // Сброс выделения и активных режимов при выходе в просмотр
+        selMid = null; selOid = null;
+        document.querySelectorAll('.me-module-node,.me-obj').forEach(el => el.classList.remove('me-sel','sel'));
+        document.querySelectorAll('.me-mod-item').forEach(el => el.classList.remove('sel'));
+        placing = null;
+        document.body.classList.remove('me-placing');
+        const ph = document.getElementById('me-place-hint'); if (ph) ph.style.display = 'none';
+    }
+    status(editMode ? 'Режим правки' : 'Просмотр');
+}
+
+// Стартуем в режиме правки (чекбокс checked по умолчанию)
+document.body.classList.add('me-edit');
+
+// Применяем размеры к серверным объектам (svg → width 100%, растяжение по высоте)
+document.querySelectorAll('.me-obj').forEach(el => {
+    applyObjSize(el, parseInt(el.style.width) || 48, parseInt(el.style.height) || 0);
+});
+
+// Загружаем сохранённое расширение карты с сервера и применяем
+fetch('/api/builder/map-settings?courseId=' + COURSE_ID)
+    .then(r => r.json())
+    .then(s => { topExt = parseInt(s.topExtPx, 10) || 0; setTimeout(applyTopExt, 80); })
+    .catch(() => setTimeout(applyTopExt, 80));
+let _meExtRT = 0;
+window.addEventListener('resize', () => { clearTimeout(_meExtRT); _meExtRT = setTimeout(applyTopExt, 100); });
+
+function status(msg, err) {
+    const el = document.getElementById('me-status');
+    el.textContent = msg;
+    el.style.color = err ? '#f44' : '#4caf50';
+    setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 2500);
+}
+
+function showTab(name) {
+    document.querySelectorAll('.me-tab').forEach((t,i) => {
+        t.classList.toggle('active', ['mods','add','props'][i] === name);
+    });
+    document.querySelectorAll('.me-tab-body').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── Масштаб карты → конвертация % ────────────────────────────────────────────
+function pctFromEvent(e) {
+    const lm = document.getElementById('levelsMain');
+    const r  = lm.getBoundingClientRect();
+    return {
+        x: Math.round((e.clientX - r.left) / r.width  * 1000) / 10,
+        y: Math.round((e.clientY - r.top)  / r.height * 1000) / 10,
+    };
+}
+
+// ── Drag модулей ──────────────────────────────────────────────────────────────
+let modDrag = null, selMid = null;
+
+function startModDrag(e, el) {
+    if (!editMode) return;
+    e.preventDefault();
+    clickMod(+el.dataset.mid, false);
+    const lm = document.getElementById('levelsMain');
+    const r  = lm.getBoundingClientRect();
+    modDrag = {
+        el, mid: +el.dataset.mid,
+        sx: e.clientX, sy: e.clientY,
+        ox: parseFloat(el.style.left), oy: parseFloat(el.style.top),
+        rw: r.width, rh: r.height
+    };
+    document.body.style.cursor = 'grabbing';
+}
+
+document.addEventListener('mousemove', e => {
+    if (!modDrag) return;
+    const dx = (e.clientX - modDrag.sx) / modDrag.rw * 100;
+    const dy = (e.clientY - modDrag.sy) / modDrag.rh * 100;
+    const nx = Math.round((modDrag.ox + dx) * 10) / 10;
+    const ny = Math.round((modDrag.oy + dy) * 10) / 10;
+    modDrag.el.style.left = nx + '%';
+    modDrag.el.style.top  = ny + '%';
+    document.getElementById('mx').value = nx;
+    document.getElementById('my').value = ny;
+    document.querySelector(`#mxy-${modDrag.mid}`).textContent = `${nx},${ny}`;
+    // Динамически перерисовываем стрелки
+    if (window.MapPaths) window.MapPaths.setPosition(modDrag.mid, nx, ny);
+    showTip(e, `X:${nx}%  Y:${ny}%`);
+});
+
+document.addEventListener('mouseup', async e => {
+    if (!modDrag) return;
+    hideTip();
+    document.body.style.cursor = '';
+    const nx = parseFloat(modDrag.el.style.left);
+    const ny = parseFloat(modDrag.el.style.top);
+    await saveModPos(modDrag.mid, nx, ny);
+    modDrag = null;
+});
+
+async function saveModPos(mid, x, y) {
+    const r = await fetch(`/api/builder/modules/${mid}/map`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapX: x, mapY: y })
+    });
+    if (r.ok) status(`✓ (${x}, ${y})`); else status('Ошибка сохранения', true);
+}
+
+function clickMod(mid, switchTab2 = true) {
+    selMid = mid;
+    document.querySelectorAll('.me-mod-item').forEach(el =>
+        el.classList.toggle('sel', +el.dataset.mid === mid));
+    document.querySelectorAll('.me-module-node').forEach(el =>
+        el.classList.toggle('me-sel', +el.dataset.mid === mid));
+    const xy = document.querySelector(`#mxy-${mid}`)?.textContent.split(',').map(Number) || [50,50];
+    document.getElementById('mx').value = xy[0];
+    document.getElementById('my').value = xy[1];
+    document.getElementById('mod-pos-form').style.display = '';
+    if (switchTab2) showTab('mods');
+    // сброс выбора объекта
+    selOid = null;
+    document.querySelectorAll('.me-obj').forEach(el => el.classList.remove('me-sel'));
+}
+
+async function applyModPos() {
+    if (!selMid) return;
+    const x = parseFloat(document.getElementById('mx').value);
+    const y = parseFloat(document.getElementById('my').value);
+    const el = document.querySelector(`.me-module-node[data-mid="${selMid}"]`);
+    if (el) { el.style.left = x + '%'; el.style.top = y + '%'; }
+    document.querySelector(`#mxy-${selMid}`).textContent = `${x},${y}`;
+    if (window.MapPaths) window.MapPaths.setPosition(selMid, x, y);
+    await saveModPos(selMid, x, y);
+}
+
+// ── Drag объектов ─────────────────────────────────────────────────────────────
+let objDrag = null, selOid = null;
+
+function startObjDrag(e, el) {
+    if (!editMode) return;
+    e.preventDefault(); e.stopPropagation();
+    selectObj(el, false);
+    const lm = document.getElementById('levelsMain');
+    const r  = lm.getBoundingClientRect();
+    objDrag = {
+        el, oid: +el.dataset.oid,
+        sx: e.clientX, sy: e.clientY,
+        ox: parseFloat(el.style.left), oy: parseFloat(el.style.top),
+        rw: r.width, rh: r.height
+    };
+    document.body.style.cursor = 'grabbing';
+}
+
+document.addEventListener('mousemove', e => {
+    if (!objDrag) return;
+    const dx = (e.clientX - objDrag.sx) / objDrag.rw * 100;
+    const dy = (e.clientY - objDrag.sy) / objDrag.rh * 100;
+    const nx = Math.round((objDrag.ox + dx) * 100) / 100;
+    const ny = Math.round((objDrag.oy + dy) * 100) / 100;
+    objDrag.el.style.left = nx + '%';
+    objDrag.el.style.top  = ny + '%';
+    document.getElementById('ox').value = nx;
+    document.getElementById('oy').value = ny;
+    showTip(e, `X:${nx}%  Y:${ny}%`);
+});
+
+document.addEventListener('mouseup', async e => {
+    if (!objDrag) return;
+    hideTip();
+    document.body.style.cursor = '';
+    const nx = parseFloat(objDrag.el.style.left);
+    const ny = parseFloat(objDrag.el.style.top);
+    await fetch(`/api/builder/map-objects/${objDrag.oid}/position`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapX: nx, mapY: ny })
+    });
+    status(`✓ Объект (${nx}, ${ny})`);
+    objDrag = null;
+});
+
+function selectObj(el, sw = true) {
+    selOid = +el.dataset.oid;
+    document.querySelectorAll('.me-obj').forEach(w => w.classList.remove('me-sel'));
+    el.classList.add('me-sel');
+    document.getElementById('ox').value = parseFloat(el.style.left);
+    document.getElementById('oy').value = parseFloat(el.style.top);
+    document.getElementById('ow').value = parseInt(el.style.width) || 0;
+    document.getElementById('oh').value = parseInt(el.style.height) || 0;
+    const rot = el.style.transform?.match(/rotate\(([^)]+)deg\)/)?.[1] || 0;
+    document.getElementById('or').value = parseFloat(rot);
+    document.getElementById('oz').value = el.style.zIndex || 0;
+    updateInvBtn(el.dataset.invert === '1');
+    document.getElementById('no-sel').style.display = 'none';
+    document.getElementById('obj-form').style.display = '';
+    // сброс модуля
+    selMid = null;
+    document.querySelectorAll('.me-module-node').forEach(n => n.classList.remove('me-sel'));
+    document.querySelectorAll('.me-mod-item').forEach(n => n.classList.remove('sel'));
+    if (sw) showTab('props');
+}
+
+async function saveObjProps() {
+    if (!selOid) return;
+    const x  = parseFloat(document.getElementById('ox').value);
+    const y  = parseFloat(document.getElementById('oy').value);
+    const w  = parseInt(document.getElementById('ow').value) || 0;
+    const h  = parseInt(document.getElementById('oh').value) || 0;
+    const rot = parseFloat(document.getElementById('or').value) || 0;
+    const zi = parseInt(document.getElementById('oz').value) || 0;
+    const el = document.querySelector(`.me-obj[data-oid="${selOid}"]`);
+    if (el) {
+        el.style.left      = x + '%';
+        el.style.top       = y + '%';
+        el.style.zIndex    = zi;
+        el.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
+        applyObjSize(el, w, h);
+    }
+    await saveObjFull(selOid, el, x, y, w, h, rot, zi);
+    status('✓ Сохранено');
+}
+
+// Применяет размеры к обёртке и заставляет SVG/IMG растягиваться (preserveAspectRatio=none)
+function applyObjSize(wrap, w, h) {
+    wrap.style.width = w + 'px';
+    const svg = wrap.querySelector('svg');
+    const img = wrap.querySelector('img');
+    if (h && h > 0) {
+        wrap.style.height = h + 'px';
+        if (svg) { svg.setAttribute('preserveAspectRatio', 'none'); svg.style.width = '100%'; svg.style.height = '100%'; svg.style.display = 'block'; }
+        if (img) { img.style.width = '100%'; img.style.height = '100%'; }
+    } else {
+        wrap.style.height = '';
+        if (svg) { svg.removeAttribute('preserveAspectRatio'); svg.style.width = '100%'; svg.style.height = 'auto'; svg.style.display = 'block'; }
+        if (img) { img.style.width = '100%'; img.style.height = 'auto'; }
+    }
+}
+
+async function saveObjFull(oid, el, x, y, w, h, rot, zi) {
+    const invert = el?.dataset.invert === '1';
+    await fetch(`/api/builder/map-objects/${oid}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: COURSE_ID, type: el?.dataset.type || 'svg_inline',
+            src: '', mapX: x, mapY: y, width: w, height: h, invert, rotation: rot, zIndex: zi })
+    });
+}
+
+// Инверсия цвета (чёрный↔белый) выбранного объекта
+function updateInvBtn(on) {
+    const b = document.getElementById('invBtn');
+    if (!b) return;
+    b.textContent = on ? '◑ Вернуть цвет' : '◐ Инвертировать цвет';
+    b.style.background = on ? '#00e5ff' : '';
+    b.style.color = on ? '#000' : '#00e5ff';
+}
+
+async function toggleInvert() {
+    if (!selOid) return;
+    const el = document.querySelector(`.me-obj[data-oid="${selOid}"]`);
+    if (!el) return;
+    const on = el.dataset.invert !== '1';
+    el.dataset.invert = on ? '1' : '0';
+    el.style.filter = on ? 'invert(1)' : '';
+    updateInvBtn(on);
+    // Сохраняем (берём актуальные размеры/позицию из элемента)
+    const w = parseInt(el.style.width) || 0;
+    const h = parseInt(el.style.height) || 0;
+    const rot = parseFloat(el.style.transform?.match(/rotate\(([^)]+)deg\)/)?.[1] || 0);
+    const x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+    const zi = parseInt(el.style.zIndex) || 0;
+    await saveObjFull(selOid, el, x, y, w, h, rot, zi);
+    status(on ? '✓ Цвет инвертирован' : '✓ Цвет восстановлен');
+}
+
+// ── Ресайз объекта тягой за угол (ширина + высота) ───────────────────────────
+let objResize = null;
+function startObjResize(e, handle) {
+    if (!editMode) return;
+    e.preventDefault(); e.stopPropagation();
+    const el = handle.closest('.me-obj');
+    selectObj(el, false);
+    const lm = document.getElementById('levelsMain');
+    const r  = lm.getBoundingClientRect();
+    const scale = r.width / lm.offsetWidth;   // экранные px → px карты
+    objResize = {
+        el, oid: +el.dataset.oid, sx: e.clientX, sy: e.clientY, scale,
+        ow: parseInt(el.style.width) || 48,
+        oh: parseInt(el.style.height) || (el.getBoundingClientRect().height / scale)
+    };
+    document.body.style.cursor = 'nwse-resize';
+}
+document.addEventListener('mousemove', e => {
+    if (!objResize) return;
+    const dw = (e.clientX - objResize.sx) / objResize.scale;
+    const dh = (e.clientY - objResize.sy) / objResize.scale;
+    const nw = Math.max(8, Math.round(objResize.ow + dw));
+    const nh = Math.max(8, Math.round(objResize.oh + dh));
+    applyObjSize(objResize.el, nw, nh);
+    document.getElementById('ow').value = nw;
+    document.getElementById('oh').value = nh;
+    showTip(e, `${nw} × ${nh}px`);
+});
+document.addEventListener('mouseup', async e => {
+    if (!objResize) return;
+    hideTip();
+    document.body.style.cursor = '';
+    const el = objResize.el;
+    const w = parseInt(el.style.width) || 0;
+    const h = parseInt(el.style.height) || 0;
+    const rot = parseFloat(el.style.transform?.match(/rotate\(([^)]+)deg\)/)?.[1] || 0);
+    const x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+    const zi = parseInt(el.style.zIndex) || 0;
+    await saveObjFull(objResize.oid, el, x, y, w, h, rot, zi);
+    status(`✓ Размер ${w}×${h}`);
+    objResize = null;
+});
+
+async function delObj(e, oid) {
+    e.stopPropagation();
+    if (!confirm('Удалить?')) return;
+    await fetch(`/api/builder/map-objects/${oid}`, { method: 'DELETE' });
+    document.querySelector(`.me-obj[data-oid="${oid}"]`)?.remove();
+    selOid = null;
+    document.getElementById('no-sel').style.display = '';
+    document.getElementById('obj-form').style.display = 'none';
+    status('Удалено');
+}
+
+async function delSelectedObj() {
+    if (selOid) await delObj({ stopPropagation: () => {} }, selOid);
+}
+
+// ── Режим размещения (выбор компонента) ───────────────────────────────────────
+let placing = null;
+
+function beginPlaceComponent(comp) {
+    if (!editMode) { status('Включи режим правки', true); return; }
+    placing = { type: comp.type, src: comp.src, width: comp.width || 64 };
+    document.body.classList.add('me-placing');
+    document.getElementById('me-place-hint').style.display = 'block';
+    status('Кликни на карту: ' + (comp.label || ''));
+}
+
+document.getElementById('levelsMain').addEventListener('click', async e => {
+    if (!placing) return;
+    const p = pctFromEvent(e);
+    const r = await fetch('/api/builder/map-objects', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: COURSE_ID, type: placing.type, src: placing.src,
+            label: '', mapX: p.x, mapY: p.y, width: placing.width || 64, height: 0, rotation: 0, zIndex: 0 })
+    });
+    const obj = await r.json();
+    appendObj(obj);
+    placing = null;
+    document.body.classList.remove('me-placing');
+    document.getElementById('me-place-hint').style.display = 'none';
+    status(`✓ Добавлено (${p.x}, ${p.y})`);
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && placing) {
+        placing = null;
+        document.body.classList.remove('me-placing');
+        document.getElementById('me-place-hint').style.display = 'none';
+        status('Отменено');
+    }
+});
+
+function appendObj(obj) {
+    const lm = document.getElementById('levelsMain');
+    const div = document.createElement('div');
+    div.className = 'me-obj';
+    div.dataset.oid  = obj.id;
+    div.dataset.type = obj.type;
+    div.dataset.invert = obj.invert ? '1' : '0';
+    div.style.cssText = `left:${obj.mapX}%;top:${obj.mapY}%;z-index:${obj.zIndex};transform:translate(-50%,-50%) rotate(${obj.rotation}deg);${obj.invert ? 'filter:invert(1);' : ''}position:absolute`;
+    // Сначала контент, потом контролы — чтобы innerHTML не стёр обработчики кнопок
+    if (obj.type === 'svg_inline') div.innerHTML = obj.src;
+    else if (obj.type === 'image_url') div.innerHTML = `<img src="${obj.src}" style="width:100%;display:block">`;
+    else div.innerHTML = `<span style="font-size:200%;line-height:1;display:block;text-align:center">${obj.src}</span>`;
+    const del = document.createElement('button');
+    del.className = 'me-obj-del'; del.textContent = '✕';
+    del.onclick = ev => delObj(ev, obj.id);
+    div.appendChild(del);
+    const rz = document.createElement('div');
+    rz.className = 'me-obj-resize';
+    rz.addEventListener('mousedown', ev => startObjResize(ev, rz));
+    div.appendChild(rz);
+    div.addEventListener('click',      () => selectObj(div));
+    div.addEventListener('mousedown',  ev => startObjDrag(ev, div));
+    lm.insertBefore(div, lm.querySelector('.levels-map'));
+    applyObjSize(div, obj.width || 48, obj.height || 0);
+}
+
+// ── Библиотека компонентов ────────────────────────────────────────────────────
+// Базовые компоненты — реальные SVG-ассеты, используемые в проекте сейчас.
+const COMPONENTS = [
+    { label: 'Гора',          type: 'image_url', src: '/img/main/decor/mountain.svg',          width: 90 },
+    { label: 'Замок',         type: 'image_url', src: '/img/main/decor/castle.svg',            width: 80 },
+    { label: 'Дерево',        type: 'image_url', src: '/img/main/objects/tree-1.svg',          width: 50 },
+    { label: 'Ёлка',          type: 'image_url', src: '/img/main/objects/tree-2.svg',          width: 44 },
+    { label: 'Облако (binary)', type: 'image_url', src: '/img/main/decor/binary-cloud.svg',     width: 100 },
+    { label: 'Иконка уровня', type: 'image_url', src: '/img/main/levels/level-icon.svg',        width: 48 },
+    { label: 'Подложка уровней', type: 'image_url', src: '/img/main/levels/levels-background.svg', width: 200 },
+];
+
+const pl = document.getElementById('presets');
+
+function renderComponents() {
+    pl.innerHTML = '';
+    COMPONENTS.forEach(c => {
+        const b = document.createElement('div');
+        b.className = 'me-preset';
+        b.title = c.label;
+        if (c.type === 'image_url')      b.innerHTML = `<img src="${c.src}" alt="${c.label}">`;
+        else if (c.type === 'svg_inline') b.innerHTML = c.src;
+        else                              b.innerHTML = `<span style="font-size:220%;line-height:1">${c.src}</span>`;
+        b.onclick = () => beginPlaceComponent(c);
+        pl.appendChild(b);
+    });
+}
+renderComponents();
+
+// Регистрация нового компонента в библиотеку (переиспользуется потом из списка)
+function addComponent(comp) {
+    COMPONENTS.push(comp);
+    renderComponents();
+    status('Компонент добавлен: ' + (comp.label || ''));
+    beginPlaceComponent(comp);   // сразу предлагаем поставить
+}
+
+function addComponentFromSvg() {
+    const src = document.getElementById('svgIn').value.trim();
+    if (!src) { status('Вставь SVG-код', true); return; }
+    addComponent({ label: 'SVG ' + (COMPONENTS.length + 1), type: 'svg_inline', src, width: 64 });
+    document.getElementById('svgIn').value = '';
+}
+
+function addComponentFromEmoji() {
+    const src = document.getElementById('emojiIn').value.trim();
+    if (!src) { status('Введи emoji/текст', true); return; }
+    addComponent({ label: src, type: 'emoji', src, width: 48 });
+    document.getElementById('emojiIn').value = '';
+}
+
+// Загрузка файла → регистрируем как компонент
+document.getElementById('fileIn').addEventListener('change', async function () {
+    if (!this.files[0]) return;
+    const name = this.files[0].name;
+    const fd = new FormData(); fd.append('file', this.files[0]);
+    const r = await fetch('/api/builder/map-objects/upload-image', { method: 'POST', body: fd });
+    if (!r.ok) { status('Ошибка загрузки', true); return; }
+    const { url } = await r.json();
+    addComponent({ label: name, type: 'image_url', src: url, width: 64 });
+    this.value = '';
+});
+
+// ── Тултип ────────────────────────────────────────────────────────────────────
+function showTip(e, text) {
+    const t = document.getElementById('me-tip');
+    t.style.display = 'block';
+    t.style.left = (e.clientX + 14) + 'px';
+    t.style.top  = (e.clientY - 22) + 'px';
+    t.textContent = text;
+}
+function hideTip() { document.getElementById('me-tip').style.display = 'none'; }
+</script>
+</body>
+</html>

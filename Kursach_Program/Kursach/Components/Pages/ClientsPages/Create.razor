@@ -1,0 +1,58 @@
+﻿@page "/clients/create"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Создать</PageTitle>
+
+<h1>Создать</h1>
+
+<h2>Клиенты</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Clients" OnValidSubmit="AddClientsHandler" FormName="createClientForm" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="firstname" class="form-label">Имя:</label>
+                <InputText id="firstname" @bind-Value="Clients.FirstName" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Clients.FirstName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="lastname" class="form-label">Фамилия:</label>
+                <InputText id="lastname" @bind-Value="Clients.LastName" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Clients.LastName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Телефон:</label>
+                <InputText id="phone" @bind-Value="Clients.Phone" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Clients.Phone" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Электронная почта:</label>
+                <InputText id="email" @bind-Value="Clients.Email" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Clients.Email" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Создать</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/clients">Назад к списку</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Clients Clients { get; set; } = new();
+
+    private async Task AddClientsHandler()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Clients.Add(Clients);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/clients");
+    }
+}

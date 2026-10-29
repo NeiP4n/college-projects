@@ -1,0 +1,62 @@
+﻿@page "/tours"
+@rendermode InteractiveServer
+@using Kursach.Models
+@using Kursach.Data
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject IDbContextFactory<KursachContext> DbFactory
+@implements IDisposable
+
+<PageTitle>Туры</PageTitle>
+
+<h1>Туры</h1>
+
+<p>
+    <a href="tours/create">Создать новый</a>
+</p>
+
+@if (tours == null)
+{
+    <p>Загрузка...</p>
+}
+else
+{
+    <QuickGrid Items="@tours" Class="table">
+        <PropertyColumn Property="@(t => t.Name)" Title="Название" />
+        <PropertyColumn Property="@(t => t.Destination)" Title="Направление" />
+        <PropertyColumn Property="@(t => t.StartDate)" Title="Дата начала" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="@(t => t.EndDate)" Title="Дата окончания" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="@(t => t.Price)" Title="Цена" />
+        <PropertyColumn Property="@(t => t.Description)" Title="Описание" />
+        <PropertyColumn Property="@(t => t.AvailableSeats)" Title="Свободные места" />
+
+        <TemplateColumn Context="t">
+            <a href="@("tours/edit?id=" + t.Id)">Редактировать</a> |
+            <a href="@("tours/details?id=" + t.Id)">Детали</a> |
+            <a href="@("tours/delete?id=" + t.Id)">Удалить</a>
+        </TemplateColumn>
+    </QuickGrid>
+}
+
+@code {
+    private IQueryable<Tours>? tours;
+    private KursachContext? context;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            context = DbFactory.CreateDbContext();
+            tours = context.Tours.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading tours: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        context?.Dispose();
+    }
+} 

@@ -1,0 +1,104 @@
+﻿@page "/clients/edit"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Редактировать</PageTitle>
+
+<h1>Редактировать</h1>
+
+<h2>Клиенты</h2>
+<hr />
+@if (Clients is null)
+{
+    <p><em>Загрузка...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Clients" OnValidSubmit="UpdateClients" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="Clients.Id" value="@Clients.Id" />
+                <div class="mb-3">
+                    <label for="firstname" class="form-label">Имя:</label>
+                    <InputText id="firstname" @bind-Value="Clients.FirstName" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Clients.FirstName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="lastname" class="form-label">Фамилия:</label>
+                    <InputText id="lastname" @bind-Value="Clients.LastName" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Clients.LastName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Телефон:</label>
+                    <InputText id="phone" @bind-Value="Clients.Phone" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Clients.Phone" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="Clients.Email" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Clients.Email" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/clients">Назад к списку</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Clients? Clients { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Clients ??= await context.Clients.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Clients is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // Для защиты от атак по переполнению формы, разрешите привязку только тех свойств, которые вы хотите.
+    // Дополнительную информацию смотрите на https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateClients()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Clients!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ClientsExists(Clients!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/clients");
+    }
+
+    private bool ClientsExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Clients.Any(e => e.Id == id);
+    }
+}

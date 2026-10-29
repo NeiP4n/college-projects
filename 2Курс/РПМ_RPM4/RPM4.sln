@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "RPM4", "RPM4\RPM4.vbproj", "{D3CC2D7A-867A-4F60-BA9B-554B2226284F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D3CC2D7A-867A-4F60-BA9B-554B2226284F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3CC2D7A-867A-4F60-BA9B-554B2226284F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3CC2D7A-867A-4F60-BA9B-554B2226284F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3CC2D7A-867A-4F60-BA9B-554B2226284F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {68406C17-9EE0-4C83-BE59-3CB677DF8D41}
+	EndGlobalSection
+EndGlobal

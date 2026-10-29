@@ -1,0 +1,169 @@
+@model CodeLearn.Models.CourseSelectionViewModel
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/main/courses.css" asp-append-version="true" />
+}
+
+@section FullPage {
+<div class="course-picker page-enter">
+    <div class="course-bg">
+        <img class="course-bg-map" src="/img/main/background/bg-map.png" alt="">
+        <img class="course-bg-mountain course-bg-mountain-left" src="/img/main/decor/mountain.svg" alt="">
+        <img class="course-bg-mountain course-bg-mountain-right" src="/img/main/decor/mountain.svg" alt="">
+    </div>
+
+    <canvas id="courseBinaryRain" class="course-rain"></canvas>
+
+    <div class="course-frame">
+        <div class="course-term">
+            <div class="course-dots"><i></i><i></i><i></i></div>
+            <div class="course-path">codelearn://<em>~/courses</em>/select</div>
+            <div class="course-status">
+                <span class="course-live">SYS:READY</span>
+                <span id="courseClock">00:00:00</span>
+                <span>NET 100%</span>
+            </div>
+        </div>
+
+        <main class="course-content">
+            <section class="course-heading">
+                <div>
+                    <div class="course-pre">// CodeLearn / start.exe</div>
+                    <h1>Выберите курс<span class="course-caret"></span></h1>
+                </div>
+                <div class="course-meta">
+                    Загружено модулей: <b>@Model.TotalModules</b><br>
+                    Активный профиль: <b>@Model.NickName.ToUpperInvariant()</b><br>
+                    Сессия: <b>#A4-2A6F</b>
+                </div>
+            </section>
+
+            <div class="course-filters" role="tablist" aria-label="Фильтр курсов">
+                <span class="course-filter-label">FILTER //</span>
+                <button type="button" class="is-active" data-filter="all">все</button>
+                <button type="button" data-filter="available">доступные</button>
+                <button type="button" data-filter="locked">заблок.</button>
+                <button type="button" data-filter="backend">backend</button>
+                <button type="button" data-filter="web">web</button>
+                <span class="course-filter-spacer"></span>
+                <span class="course-legend"><i class="legend-live"></i>Активен</span>
+                <span class="course-legend"><i class="legend-soon"></i>Soon</span>
+                <span class="course-legend"><i class="legend-lock"></i>Locked</span>
+            </div>
+
+            <section class="course-grid" aria-label="Курсы">
+                @for (var i = 0; i < Model.Courses.Count; i++)
+                {
+                    var course = Model.Courses[i];
+                    var href = course.IsAvailable
+                        ? Url.Action("Select", "Courses", new { id = course.Id })
+                        : "#";
+                    var stateClass = course.State == "available" ? "" : course.State;
+
+                    <a href="@href"
+                       class="course-card @stateClass"
+                       data-course="@course.Id"
+                       data-state="@course.State"
+                       data-cats="@course.Categories"
+                       style="--node-color:@course.Color;--card-delay:@(0.12 + i * 0.08)s">
+                        <span class="course-badge @(course.IsAvailable ? "hot" : "")">@course.Badge</span>
+                        <div class="course-top"><span>// @((i + 1).ToString("D2"))</span><span>@course.Track</span></div>
+
+                        <div class="course-folder" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 40" shape-rendering="crispEdges">
+                                <rect class="f-tab" x="2" y="2" width="14" height="4"/>
+                                <rect class="f-tab" x="16" y="4" width="2" height="2"/>
+                                <rect class="f-edge" x="2" y="6" width="44" height="30"/>
+                                <rect class="f-dark" x="4" y="8" width="40" height="26"/>
+                                <rect class="f-body" x="4" y="8" width="40" height="26"/>
+                                <rect class="f-shine" x="4" y="8" width="40" height="3"/>
+                                <rect class="f-shine" x="4" y="11" width="2" height="23"/>
+                                <rect class="f-edge" x="4" y="8" width="2" height="2"/>
+                                <rect class="f-edge" x="42" y="8" width="2" height="2"/>
+                                <rect class="f-edge" x="4" y="32" width="2" height="2"/>
+                                <rect class="f-edge" x="42" y="32" width="2" height="2"/>
+                                <rect class="f-shadow" x="4" y="33" width="40" height="2"/>
+                                <rect class="f-shadow" x="43" y="9" width="2" height="24"/>
+                                @if (course.Icon == "python")
+                                {
+                                    @* PY — Python *@
+                                    <rect class="f-glyph" x="10" y="17" width="2" height="10"/>
+                                    <rect class="f-glyph" x="12" y="17" width="4" height="2"/>
+                                    <rect class="f-glyph" x="16" y="17" width="2" height="6"/>
+                                    <rect class="f-glyph" x="12" y="21" width="4" height="2"/>
+                                    <rect class="f-glyph" x="22" y="17" width="2" height="5"/>
+                                    <rect class="f-glyph" x="28" y="17" width="2" height="5"/>
+                                    <rect class="f-glyph" x="24" y="20" width="4" height="2"/>
+                                    <rect class="f-glyph" x="25" y="22" width="2" height="5"/>
+                                }
+                                else if (course.Icon == "ai")
+                                {
+                                    @* AI *@
+                                    <rect class="f-glyph" x="10" y="19" width="2" height="8"/>
+                                    <rect class="f-glyph" x="16" y="19" width="2" height="8"/>
+                                    <rect class="f-glyph" x="12" y="17" width="4" height="2"/>
+                                    <rect class="f-glyph" x="12" y="22" width="4" height="2"/>
+                                    <rect class="f-glyph" x="23" y="17" width="6" height="2"/>
+                                    <rect class="f-glyph" x="25" y="19" width="2" height="8"/>
+                                    <rect class="f-glyph" x="23" y="27" width="6" height="2"/>
+                                }
+                                else
+                                {
+                                    @* C|+ — C# default *@
+                                    <rect class="f-glyph" x="12" y="17" width="4" height="2"/>
+                                    <rect class="f-glyph" x="10" y="19" width="2" height="6"/>
+                                    <rect class="f-glyph" x="12" y="25" width="4" height="2"/>
+                                    <rect class="f-glyph" x="22" y="16" width="2" height="12"/>
+                                    <rect class="f-glyph" x="28" y="20" width="8" height="2"/>
+                                    <rect class="f-glyph" x="31" y="17" width="2" height="8"/>
+                                }
+                            </svg>
+                        </div>
+
+                        <div class="course-name">@course.Title.StripEmoji()</div>
+                        <div class="course-tag">@course.Tag</div>
+
+                        <div class="course-stats">
+                            <span><b>@course.LessonsCount</b><small>уроков</small></span>
+                            <span><b>@course.ModulesCount</b><small>модулей</small></span>
+                            <span><b>@course.EstimatedHours h</b><small>оценка</small></span>
+                        </div>
+
+                        <div class="course-progress">
+                            <div><span>Прогресс</span><b>@course.ProgressPercent%</b></div>
+                            <span class="course-progress-bar"><i style="width:@course.ProgressPercent%"></i></span>
+                        </div>
+
+                        <div class="course-cta">
+                            <span>@course.Requirement</span>
+                            <span class="course-arrow">[ &gt; ]</span>
+                        </div>
+                    </a>
+                }
+            </section>
+        </main>
+
+        <footer class="course-footer">
+            <span><b>Enter</b> выбрать</span>
+            <span><b>/</b> фильтр</span>
+            <span class="course-footer-spacer"></span>
+            <span>build <em>v1.4.2</em> - <em id="courseBootMsg">ready</em></span>
+        </footer>
+    </div>
+</div>
+
+<div class="course-glitch" id="courseGlitch"></div>
+<div class="course-bios" id="courseBios">
+    <div class="course-bios-inner">
+        <div class="course-bios-head"><span></span>CodeLearn BIOS v1.4.2 <em>2026 PixelOS</em></div>
+        <div id="courseBiosLog"></div>
+        <div class="course-bios-load" id="courseBiosLoad">
+            <div><span>LOADING <b id="courseBiosName">C# / .NET</b></span><span><b id="courseBiosPct">0</b>%</span></div>
+            <i><b id="courseBiosFill"></b></i>
+        </div>
+        <div class="course-bios-cursor">&gt;</div>
+    </div>
+</div>
+
+<script src="~/js/main/course-picker.js" asp-append-version="true"></script>
+}

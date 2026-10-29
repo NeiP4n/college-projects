@@ -1,0 +1,369 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Builder — CodeLearn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/base/pixel.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/builder/builder.css" asp-append-version="true">
+</head>
+<body>
+
+    <div class="bld">
+
+        <!-- Header -->
+        <div class="bld-header">
+            <span class="bld-title">⚙ CodeLearn Builder</span>
+            <span class="bld-status" id="bldStatus"></span>
+            <button class="bld-btn sm" onclick="addModule()">+ модуль</button>
+            <button class="bld-btn sm" onclick="addChallenge()" style="border-color:#ffd700;color:#ffd700">⚡ испытание</button>
+            <button class="bld-btn sm" onclick="seedCsharp()" style="border-color:#ff6666;color:#ff6666" title="Пересоздать весь C# курс">⟳ сид C#</button>
+            <button class="bld-btn sm" onclick="unlockAll()" style="border-color:#44ff88;color:#44ff88" title="Снять админ-блокировку (IsLocked) со всех">🔓 разблокировать всё</button>
+            <button class="bld-btn sm" onclick="lockAll()" style="border-color:#ff6666;color:#ff6666" title="Включить блокировку по прохождению">🔒 заблокировать всё</button>
+            <button class="bld-btn sm" onclick="completeAll()" style="border-color:#44ff88;color:#44ff88" title="Отметить все уроки пройденными (все пользователи)">✅ пройти всё</button>
+            <button class="bld-btn sm" onclick="resetProgress()" style="border-color:#ff9944;color:#ff9944" title="Сбросить прогресс всех пользователей">♻ сбросить прогресс</button>
+            <button class="bld-btn sm" onclick="showSettings()">Настройки</button>
+            <a id="btnMapEditor" href="/Builder/MapEditor" class="bld-btn sm" style="border-color:#00e5ff;color:#00e5ff" target="_blank">🗺 Редактор карты</a>
+            <a href="/" class="bld-btn sm">← выйти</a>
+        </div>
+
+        <!-- Body -->
+        <div class="bld-body">
+
+            <!-- Левая панель: модули / уроки -->
+            <div class="bld-panel">
+                <div class="bld-panel-title">Модули и уроки</div>
+                <div class="bld-scroll" id="bldSidebar"></div>
+            </div>
+
+            <!-- Центр: вкладки контент / карта -->
+            <div class="bld-panel" style="border-right:none">
+
+                <!-- Вкладки (карта вынесена в отдельный «Редактор карты») -->
+                <div class="bld-tabs">
+                    <button class="bld-tab active" id="tabContent" onclick="switchTab('content')">Контент</button>
+                </div>
+
+                <!-- Область контента / карты -->
+                <div id="bldCanvas" class="bld-canvas-area"></div>
+
+                <!-- Палитра блоков (скрывается в режиме карты) -->
+                <div class="bld-palette" id="bldPalette">
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">базовые</span>
+                        <button class="bld-btn sm" onclick="addBlock('text')">текст</button>
+                        <button class="bld-btn sm" onclick="addBlock('code')">код</button>
+                        <button class="bld-btn sm" onclick="addBlock('quiz')">тест</button>
+                        <button class="bld-btn sm" onclick="addBlock('task')">задание</button>
+                        <button class="bld-btn sm" onclick="addBlock('button')">кнопка</button>
+                    </div>
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">предсказание</span>
+                        <button class="bld-btn sm" onclick="addBlock('prediction')">предсказание</button>
+                        <button class="bld-btn sm" onclick="addBlock('modify')">правка строки</button>
+                        <button class="bld-btn sm" onclick="addBlock('counterfactual')">что если</button>
+                        <button class="bld-btn sm" onclick="addBlock('broken_reality')">скрытый баг</button>
+                        <button class="bld-btn sm" onclick="addBlock('semantic_diff')">смысл-диф</button>
+                        <button class="bld-btn sm" onclick="addBlock('mutation')">мутация</button>
+                    </div>
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">конструирование</span>
+                        <button class="bld-btn sm" onclick="addBlock('fill_blank')">пропуски</button>
+                        <button class="bld-btn sm" onclick="addBlock('drag_order')">порядок</button>
+                        <button class="bld-btn sm" onclick="addBlock('goal_construction')">от цели</button>
+                        <button class="bld-btn sm" onclick="addBlock('template_completion')">шаблон</button>
+                        <button class="bld-btn sm" onclick="addBlock('fix_bug')">баг</button>
+                        <button class="bld-btn sm" onclick="addBlock('mini_task')">мини-задача</button>
+                        <button class="bld-btn sm" onclick="addBlock('constraint')">ограничение</button>
+                        <button class="bld-btn sm" onclick="addBlock('rebuild_scratch')">с нуля</button>
+                        <button class="bld-btn sm" onclick="addBlock('progressive_reveal')">по частям</button>
+                    </div>
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">объяснение</span>
+                        <button class="bld-btn sm" onclick="addBlock('explain')">объяснение</button>
+                        <button class="bld-btn sm" onclick="addBlock('intent_to_code')">намерение→код</button>
+                        <button class="bld-btn sm" onclick="addBlock('code_to_intent')">код→смысл</button>
+                    </div>
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">контроль</span>
+                        <button class="bld-btn sm" onclick="addBlock('challenge_task')" style="border-color:#ffd700;color:#ffd700">⚡ испытание</button>
+                        <button class="bld-btn sm" onclick="addBlock('control_question')">контр. вопрос</button>
+                        <button class="bld-btn sm" onclick="addBlock('control_task')">контр. задача</button>
+                        <button class="bld-btn sm" onclick="addBlock('checkpoint')">чекпоинт</button>
+                        <button class="bld-btn sm" onclick="addBlock('knowledge_check')">по теме</button>
+                        <button class="bld-btn sm" onclick="addBlock('transfer_test')">перенос</button>
+                        <button class="bld-btn sm" onclick="addBlock('timed_test')">на время</button>
+                    </div>
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">анализ</span>
+                        <button class="bld-btn sm" onclick="addBlock('compare_variants')">сравнение</button>
+                        <button class="bld-btn sm" onclick="addBlock('counterexample')">контрпример</button>
+                        <button class="bld-btn sm" onclick="addBlock('adversarial_test')">сломай</button>
+                        <button class="bld-btn sm" onclick="addBlock('two_path')">два пути</button>
+                    </div>
+                    <div class="bld-palette-group">
+                        <span class="bld-palette-label">дополнительно</span>
+                        <button class="bld-btn sm" onclick="addBlock('short_answer')">короткий ответ</button>
+                        <button class="bld-btn sm" onclick="addBlock('classify')">классификация</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая панель: свойства -->
+            <div class="bld-panel">
+                <div class="bld-panel-title">Свойства</div>
+                <div id="bldProps" style="flex:1;overflow:hidden;display:flex;flex-direction:column"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         ПАНЕЛЬ НАСТРОЕК (оверлей поверх bld-body)
+    ══════════════════════════════════════════════════════════════ -->
+    <div class="bld-settings-overlay" id="bldSettingsOverlay" style="display:none">
+        <div class="bld-settings-panel">
+
+            <!-- Шапка -->
+            <div class="bld-settings-head">
+                <span class="bld-settings-title">// НАСТРОЙКИ ПРОЕКТА</span>
+                <button class="bld-btn sm" onclick="hideSettings()">закрыть</button>
+            </div>
+
+            <!-- Вкладки -->
+            <div class="bld-stabs">
+                <button class="bld-stab bld-stab--active" id="stab-stats" onclick="showSTab('stats')">Статистика</button>
+                <button class="bld-stab" id="stab-ai" onclick="showSTab('ai')">AI-наставник</button>
+                <button class="bld-stab" id="stab-platform" onclick="showSTab('platform')">Платформа</button>
+                <button class="bld-stab" id="stab-email" onclick="showSTab('email')">Email</button>
+                <button class="bld-stab" id="stab-users" onclick="showSTab('users')">Пользователи</button>
+                <button class="bld-stab" id="stab-system" onclick="showSTab('system')">Система</button>
+            </div>
+
+            <!-- Контент -->
+            <div class="bld-settings-body">
+
+                <!-- ── СТАТИСТИКА ── -->
+                <div class="bld-spanel" id="spanel-stats">
+                    <div class="bld-sstat-grid">
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-users">–</div><div class="bld-sstat-lbl">пользователей</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-lessons">–</div><div class="bld-sstat-lbl">уроков</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-modules">–</div><div class="bld-sstat-lbl">модулей</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-completions">–</div><div class="bld-sstat-lbl">прохождений</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-errors">–</div><div class="bld-sstat-lbl">ошибок всего</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-comments">–</div><div class="bld-sstat-lbl">комментариев</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-ai-today">–</div><div class="bld-sstat-lbl">AI сегодня</div></div>
+                        <div class="bld-sstat"><div class="bld-sstat-val" id="ss-ai-total">–</div><div class="bld-sstat-lbl">AI всего</div></div>
+                    </div>
+                    <button class="bld-btn sm" onclick="loadStats()" style="margin-top:16px">обновить</button>
+                </div>
+
+                <!-- ── AI ── -->
+                <div class="bld-spanel" id="spanel-ai" style="display:none">
+                    <div class="bld-sform">
+
+                        <div class="bld-srow">
+                            <div class="bld-sfield" style="flex:1">
+                                <label class="bld-slabel">Провайдер</label>
+                                <select class="bld-sinput" id="sf-ai-provider" onchange="onProviderChange()">
+                                    <option value="groq">Groq — Llama 4 Scout (рекомендуется)</option>
+                                    <option value="gemini">Google Gemini 2.0 Flash [ЛУЧШИЙ ЛИМИТ]</option>
+                                    <option value="gemini25">Google Gemini 2.5 Flash [новый]</option>
+                                    <option value="openrouter">OpenRouter (19 бесплатных моделей)</option>
+                                    <option value="cerebras">Cerebras</option>
+                                    <option value="mistral">Mistral</option>
+                                    <option value="sambanova">SambaNova</option>
+                                    <option value="anthropic">Anthropic</option>
+                                </select>
+                            </div>
+                            <div class="bld-sfield" style="flex:2">
+                                <label class="bld-slabel">Модель</label>
+                                <input class="bld-sinput" type="text" id="sf-ai-model" placeholder="llama-3.3-70b-versatile">
+                                <div class="bld-shint" id="sf-ai-model-hint"></div>
+                            </div>
+                        </div>
+
+                        <div class="bld-shint bld-provider-limits" id="sf-ai-limits"></div>
+
+                        <div class="bld-sfield">
+                            <label class="bld-slabel">API ключ</label>
+                            <div class="bld-sinput-row">
+                                <input class="bld-sinput" type="password" id="sf-ai-key" placeholder="sk-...">
+                                <button class="bld-btn sm" type="button" onclick="togglePwd('sf-ai-key',this)">показать</button>
+                            </div>
+                            <div class="bld-shint" id="sf-ai-key-status"></div>
+                        </div>
+
+                        <div class="bld-srow">
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Дневной лимит (сообщений)</label>
+                                <input class="bld-sinput" type="number" id="sf-ai-limit" min="1" max="1000" style="width:110px">
+                            </div>
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Макс. токенов в ответе</label>
+                                <input class="bld-sinput" type="number" id="sf-ai-tokens" min="64" max="2048" style="width:110px">
+                            </div>
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Сообщений истории</label>
+                                <input class="bld-sinput" type="number" id="sf-ai-history" min="1" max="20" style="width:110px">
+                            </div>
+                        </div>
+
+                        <button class="bld-btn" onclick="saveAiSettings()">Сохранить AI-настройки</button>
+                    </div>
+                </div>
+
+                <!-- ── ПЛАТФОРМА ── -->
+                <div class="bld-spanel" id="spanel-platform" style="display:none">
+                    <div class="bld-sform">
+
+                        <div class="bld-sfield">
+                            <label class="bld-slabel">Название сайта</label>
+                            <input class="bld-sinput" type="text" id="sf-pl-sitename" placeholder="CodeLearn" style="max-width:320px">
+                        </div>
+
+                        <div class="bld-stoggle-grid">
+                            <div class="bld-stoggle-row">
+                                <div>
+                                    <div class="bld-slabel">Регистрация открыта</div>
+                                    <div class="bld-shint">Закрыть — новые пользователи не смогут зарегистрироваться</div>
+                                </div>
+                                <label class="bld-switch">
+                                    <input type="checkbox" id="sf-pl-reg">
+                                    <span class="bld-switch-track"></span>
+                                </label>
+                            </div>
+                            <div class="bld-stoggle-row">
+                                <div>
+                                    <div class="bld-slabel">AI-наставник включён</div>
+                                    <div class="bld-shint">Глобальное отключение чата с AI для всех пользователей</div>
+                                </div>
+                                <label class="bld-switch">
+                                    <input type="checkbox" id="sf-pl-ai">
+                                    <span class="bld-switch-track"></span>
+                                </label>
+                            </div>
+                            <div class="bld-stoggle-row">
+                                <div>
+                                    <div class="bld-slabel">Комментарии включены</div>
+                                    <div class="bld-shint">Чат обсуждения в уроках</div>
+                                </div>
+                                <label class="bld-switch">
+                                    <input type="checkbox" id="sf-pl-comments">
+                                    <span class="bld-switch-track"></span>
+                                </label>
+                            </div>
+                            <div class="bld-stoggle-row">
+                                <div>
+                                    <div class="bld-slabel">Блокировка по прохождению</div>
+                                    <div class="bld-shint">ВКЛ — модули/уроки открываются по очереди. ВЫКЛ — доступ ко всем урокам сразу</div>
+                                </div>
+                                <label class="bld-switch">
+                                    <input type="checkbox" id="sf-pl-progression">
+                                    <span class="bld-switch-track"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bld-srow">
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Макс. длина комментария (симв.)</label>
+                                <input class="bld-sinput" type="number" id="sf-pl-cmaxlen" min="50" max="10000" style="width:130px">
+                            </div>
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Ошибок до подсказки</label>
+                                <input class="bld-sinput" type="number" id="sf-pl-hint" min="1" max="20" style="width:100px">
+                            </div>
+                        </div>
+
+                        <div class="bld-srow">
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Интервал опроса чата (сек)</label>
+                                <input class="bld-sinput" type="number" id="sf-pl-poll" min="1" max="60" style="width:110px">
+                            </div>
+                            <div class="bld-sfield">
+                                <label class="bld-slabel">Комментариев на страницу</label>
+                                <input class="bld-sinput" type="number" id="sf-pl-cpage" min="5" max="200" style="width:110px">
+                            </div>
+                        </div>
+
+                        <button class="bld-btn" onclick="savePlatformSettings()">Сохранить настройки платформы</button>
+                    </div>
+                </div>
+
+                <!-- ── EMAIL ── -->
+                <div class="bld-spanel" id="spanel-email" style="display:none">
+                    <div class="bld-sform">
+                        <div class="bld-srow">
+                            <div class="bld-sfield" style="flex:2">
+                                <label class="bld-slabel">SMTP хост</label>
+                                <input class="bld-sinput" type="text" id="sf-em-host" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="bld-sfield" style="flex:1">
+                                <label class="bld-slabel">Порт</label>
+                                <input class="bld-sinput" type="number" id="sf-em-port" placeholder="587">
+                            </div>
+                        </div>
+                        <div class="bld-sfield">
+                            <label class="bld-slabel">Почта (логин)</label>
+                            <input class="bld-sinput" type="email" id="sf-em-user" placeholder="you@gmail.com">
+                        </div>
+                        <div class="bld-sfield">
+                            <label class="bld-slabel">App Password</label>
+                            <div class="bld-sinput-row">
+                                <input class="bld-sinput" type="password" id="sf-em-pass" placeholder="xxxx xxxx xxxx xxxx">
+                                <button class="bld-btn sm" type="button" onclick="togglePwd('sf-em-pass',this)">показать</button>
+                            </div>
+                        </div>
+                        <div class="bld-sfield">
+                            <label class="bld-slabel">From (отображаемое имя)</label>
+                            <input class="bld-sinput" type="text" id="sf-em-from" placeholder="CodeLearn &lt;you@gmail.com&gt;">
+                        </div>
+                        <button class="bld-btn" onclick="saveEmailSettings()">Сохранить Email-настройки</button>
+                    </div>
+                </div>
+
+                <!-- ── ПОЛЬЗОВАТЕЛИ ── -->
+                <div class="bld-spanel" id="spanel-users" style="display:none">
+                    <div class="bld-susers-bar">
+                        <input class="bld-sinput" type="text" id="sf-users-search" placeholder="Поиск по нику / email..."
+                               oninput="filterUsers()" style="flex:1">
+                        <span class="bld-shint" id="sf-users-count"></span>
+                    </div>
+                    <div class="bld-susers-list" id="sf-users-list">
+                        <div class="bld-sloading">Загрузка...</div>
+                    </div>
+                </div>
+
+                <!-- ── СИСТЕМА ── -->
+                <div class="bld-spanel" id="spanel-system" style="display:none">
+                    <div class="bld-sys-grid" id="sys-grid">
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Окружение</span><span class="bld-sys-val" id="sys-env">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Запущен</span><span class="bld-sys-val" id="sys-started">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Аптайм</span><span class="bld-sys-val" id="sys-uptime">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">ОС</span><span class="bld-sys-val" id="sys-os">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Фреймворк</span><span class="bld-sys-val" id="sys-fw">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Архитектура</span><span class="bld-sys-val" id="sys-arch">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Машина</span><span class="bld-sys-val" id="sys-machine">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Процессоры</span><span class="bld-sys-val" id="sys-cpu">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Память (RAM)</span><span class="bld-sys-val" id="sys-mem">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">Пик памяти</span><span class="bld-sys-val" id="sys-mempeak">–</span></div>
+                        <div class="bld-sys-row"><span class="bld-sys-lbl">База данных</span><span class="bld-sys-val" id="sys-db">–</span></div>
+                    </div>
+                    <div class="bld-sys-log-title">Последние строки лога</div>
+                    <div class="bld-sys-log" id="sys-log">Загрузка...</div>
+                    <button class="bld-btn sm" onclick="loadSysInfo()" style="margin-top:12px">обновить</button>
+                </div>
+
+            </div><!-- /bld-settings-body -->
+        </div><!-- /bld-settings-panel -->
+    </div><!-- /bld-settings-overlay -->
+
+    <script src="~/js/builder/builder.js" asp-append-version="true"></script>
+</body>
+</html>

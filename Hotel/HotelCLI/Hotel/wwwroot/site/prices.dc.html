@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;} body{margin:0;background:#FBF7EF;}</style>
+</helmet>
+<div style="font-family: 'Manrope', sans-serif; color: #15292E; background: #FBF7EF;">
+  <dc-import name="Nav" active="prices" hint-size="100%,86px"></dc-import>
+
+  <section style="position: relative; padding: clamp(80px, 11vw, 150px) clamp(20px, 5vw, 64px) clamp(60px, 8vw, 110px); background: linear-gradient(120deg,#0C3B45,#2E96A8); overflow: hidden;">
+    <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=2000&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.26;">
+    <div style="position: relative; z-index: 2; max-width: 1240px; margin: 0 auto;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #BFE0E5; margin-bottom: 18px;">Тарифы</div>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; color: #FBF7EF; margin: 0;">Цены и тарифы</h1>
+      <p style="font-size: 17px; line-height: 1.7; color: #E4EEEF; max-width: 520px; margin: 22px 0 0;">Прозрачные цены без скрытых сборов. Завтрак, Wi-Fi и парковка уже включены в стоимость.</p>
+    </div>
+  </section>
+
+  <!-- PRICE TABLE -->
+  <section style="max-width: 1100px; margin: 0 auto; padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 64px);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 42px); font-weight: 500; color: #0C3B45; margin: 0;">Стоимость за ночь</h2>
+      <div style="display: flex; gap: 18px; font-size: 12px; color: #5C6E70;"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#7FC4CE;margin-right:6px;"></span>Низкий сезон</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#C8A368;margin-right:6px;"></span>Высокий сезон</span></div>
+    </div>
+
+    <div style="background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 40px rgba(12,59,69,0.07);">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 18px 28px; background: #0C3B45; color: #BFE0E5; font-size: 11.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">
+        <div>Категория</div><div>Гостей</div><div style="text-align:right;">Низкий сезон</div><div style="text-align:right;">Высокий сезон</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 22px 28px; align-items: center; border-bottom: 1px solid #EEE6D8;">
+        <div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#0C3B45;">Стандарт «Бриз»</div><div style="font-size:13px;color:#8AA0A2;">20 м²</div></div>
+        <div style="font-size:14px;color:#455A5C;">2</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#145A6B;">5 400 ₽</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#C8A368;">7 200 ₽</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 22px 28px; align-items: center; border-bottom: 1px solid #EEE6D8;">
+        <div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#0C3B45;">Делюкс «Прибой»</div><div style="font-size:13px;color:#8AA0A2;">28 м² · балкон к морю</div></div>
+        <div style="font-size:14px;color:#455A5C;">2</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#145A6B;">8 900 ₽</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#C8A368;">11 800 ₽</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 22px 28px; align-items: center; border-bottom: 1px solid #EEE6D8;">
+        <div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#0C3B45;">Семейный «Дюна»</div><div style="font-size:13px;color:#8AA0A2;">38 м² · 2 зоны сна</div></div>
+        <div style="font-size:14px;color:#455A5C;">до 4</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#145A6B;">11 200 ₽</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#C8A368;">14 600 ₽</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 22px 28px; align-items: center;">
+        <div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#0C3B45;">Сюит «Лагуна»</div><div style="font-size:13px;color:#8AA0A2;">42 м² · терраса</div></div>
+        <div style="font-size:14px;color:#455A5C;">до 3</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#145A6B;">14 500 ₽</div>
+        <div style="text-align:right;font-size:17px;font-weight:600;color:#C8A368;">19 900 ₽</div>
+      </div>
+    </div>
+    <p style="font-size: 13px; color: #8AA0A2; margin: 16px 0 0;">Низкий сезон: октябрь — апрель. Высокий сезон: май — сентябрь. Цены указаны за номер в сутки, завтрак включён.</p>
+  </section>
+
+  <!-- PACKAGES -->
+  <section style="background: #F4ECDD; padding: clamp(70px, 10vw, 120px) clamp(20px, 5vw, 64px);">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 48px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #2E96A8; margin-bottom: 14px;">Выгоднее вместе</div>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(30px, 4vw, 48px); font-weight: 500; color: #0C3B45; margin: 0;">Пакеты отдыха</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px;">
+        <div style="background: #FBF7EF; border-radius: 20px; padding: 38px 32px;">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#0C3B45;margin:0 0 6px;">Уикенд у моря</h3>
+          <p style="font-size:14px;color:#5C6E70;margin:0 0 20px;">2 ночи для двоих</p>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;color:#145A6B;line-height:1;">19 900 ₽</div>
+          <div style="height:1px;background:#E2D4BC;margin:24px 0;"></div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:#455A5C;"><span>· Делюкс с видом на море</span><span>· Завтраки на террасе</span><span>· Поздний выезд до 15:00</span></div>
+        </div>
+        <div style="background: #0C3B45; border-radius: 20px; padding: 38px 32px; position: relative;">
+          <span style="position:absolute;top:24px;right:24px;font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#0C3B45;background:#EBD6A8;padding:5px 12px;border-radius:999px;">Хит</span>
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#FBF7EF;margin:0 0 6px;">Неделя тишины</h3>
+          <p style="font-size:14px;color:#9EBEC4;margin:0 0 20px;">7 ночей для двоих</p>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;color:#EBD6A8;line-height:1;">62 000 ₽</div>
+          <div style="height:1px;background:rgba(255,255,255,0.15);margin:24px 0;"></div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:#CFE3E6;"><span>· Сюит «Лагуна»</span><span>· SPA-ритуал для двоих</span><span>· Лодочная прогулка на закат</span><span>· Ужин при свечах</span></div>
+        </div>
+        <div style="background: #FBF7EF; border-radius: 20px; padding: 38px 32px;">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#0C3B45;margin:0 0 6px;">Семейные каникулы</h3>
+          <p style="font-size:14px;color:#5C6E70;margin:0 0 20px;">5 ночей, до 4 гостей</p>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;color:#145A6B;line-height:1;">48 500 ₽</div>
+          <div style="height:1px;background:#E2D4BC;margin:24px 0;"></div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:#455A5C;"><span>· Семейный номер «Дюна»</span><span>· Завтраки и детское меню</span><span>· Прокат инвентаря для пляжа</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INCLUDED + POLICY -->
+  <section style="max-width: 1100px; margin: 0 auto; padding: clamp(70px, 10vw, 110px) clamp(20px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1fr; gap: 56px;">
+    <div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:#0C3B45;margin:0 0 22px;">Всегда включено</h2>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;gap:12px;font-size:15px;color:#455A5C;"><span style="color:#2E96A8;font-weight:700;">✓</span> Завтрак «шведский стол» до 12:00</div>
+        <div style="display:flex;gap:12px;font-size:15px;color:#455A5C;"><span style="color:#2E96A8;font-weight:700;">✓</span> Быстрый Wi-Fi на всей территории</div>
+        <div style="display:flex;gap:12px;font-size:15px;color:#455A5C;"><span style="color:#2E96A8;font-weight:700;">✓</span> Парковка и шезлонги на пляже</div>
+        <div style="display:flex;gap:12px;font-size:15px;color:#455A5C;"><span style="color:#2E96A8;font-weight:700;">✓</span> Чай, кофе и вода в номере</div>
+      </div>
+    </div>
+    <div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:#0C3B45;margin:0 0 22px;">Условия</h2>
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:15px;color:#455A5C;line-height:1.6;">
+        <div>Заезд с 14:00, выезд до 12:00</div>
+        <div>Бесплатная отмена за 7 дней до заезда</div>
+        <div>Дети до 6 лет — бесплатно</div>
+        <div>Возможно проживание с питомцами по запросу</div>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

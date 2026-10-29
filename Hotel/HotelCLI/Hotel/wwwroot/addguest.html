@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Гости</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="brand">
+      <span class="brand-name">ОТЕЛИ</span>
+      <span class="brand-section">Гости &middot; Учёт</span>
+    </div>
+    <button class="header-back" onclick="postToHost('navigate', { page: 'main' })">&larr; Главная</button>
+  </div>
+
+  <div class="app-main">
+    <div>
+      <div class="page-eyebrow">Гостиница</div>
+      <h1 class="page-title">Список гостей</h1>
+    </div>
+
+    <div class="layout-split">
+      <div class="card">
+        <form id="guestForm" onsubmit="submitGuest(event)">
+          <div class="field">
+            <label for="fio">ФИО</label>
+            <input id="fio" type="text" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="passport">Серия и номер паспорта</label>
+            <input id="passport" type="text" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="phone">Номер телефона</label>
+            <input id="phone" type="text" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="regDate">Дата регистрации</label>
+            <input id="regDate" type="date" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Зарегистрировать гостя</button>
+        </form>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div class="search-bar">
+          <span class="search-icon">&#128269;</span>
+          <input id="searchInput" type="text" placeholder="Поиск по ФИО или телефону" onkeydown="if(event.key==='Enter') runSearch()" />
+          <button class="btn btn-secondary" onclick="runSearch()">Найти гостя</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ФИО</th>
+                <th>Серия и номер паспорта</th>
+                <th>Номер телефона</th>
+                <th>Дата регистрации</th>
+              </tr>
+            </thead>
+            <tbody id="guestRows">
+              <tr class="empty-row"><td colspan="4">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="bridge.js"></script>
+<script>
+  function submitGuest(e) {
+    e.preventDefault();
+    postToHost('addGuest', {
+      fio: document.getElementById('fio').value,
+      passport: document.getElementById('passport').value,
+      phone: document.getElementById('phone').value,
+      regDate: document.getElementById('regDate').value
+    });
+  }
+
+  function runSearch() {
+    postToHost('searchGuests', { query: document.getElementById('searchInput').value });
+  }
+
+  function renderGuests(rows) {
+    const body = document.getElementById('guestRows');
+    if (!rows || rows.length === 0) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Нет данных</td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (r) {
+      return '<tr>' +
+        '<td>' + escapeHtml(r.fio) + '</td>' +
+        '<td>' + escapeHtml(r.passport) + '</td>' +
+        '<td>' + escapeHtml(r.phone) + '</td>' +
+        '<td>' + escapeHtml(r.regDate) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function clearGuestForm() {
+    document.getElementById('guestForm').reset();
+  }
+
+  postToHost('ready', {});
+</script>
+</body>
+</html>

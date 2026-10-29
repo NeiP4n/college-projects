@@ -1,0 +1,89 @@
+=== Lesson 951: Делегаты ===
+  [200] text
+  [200] code
+  [200] compare_variants
+  [200] code
+  [200] quiz
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 952: Func<T> и Action<T> ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] fix_bug
+  [200] knowledge_check
+
+=== Lesson 953: Лямбда-выражения ===
+  [200] text
+  [200] code
+  [200] prediction
+  [200] mini_task
+  [200] code_to_intent
+  [200] transfer_test
+
+=== Lesson 954: Замыкания ===
+  [200] text
+  [200] prediction
+  [200] code
+  [200] fix_bug
+  [200] mutation
+  [200] knowledge_check
+
+=== Lesson 955: Событие event ===
+  [200] text
+  [200] code
+  [200] code_to_intent
+  [200] code
+  [200] quiz
+  [200] knowledge_check
+
+=== Lesson 956: Анонимные типы ===
+  [200] text
+  [200] code
+  [200] compare_variants
+  [200] prediction
+  [200] knowledge_check
+  [200] transfer_test
+
+=== Lesson 957: try / catch / finally ===
+  [200] text
+  [200] drag_order
+  [200] code
+  [200] fix_bug
+  [200] prediction
+  [200] knowledge_check
+
+=== Lesson 958: Иерархия исключений ===
+  [200] text
+  [200] code
+  [200] code_to_intent
+  [200] quiz
+  [200] semantic_diff
+  [200] transfer_test
+
+=== Lesson 959: Кастомные исключения ===
+  [200] text
+  [200] code
+  [200] fix_bug
+  [200] mini_task
+  [200] knowledge_check
+
+=== Lesson 960: throw, rethrow и when ===
+  [200] text
+  [200] two_path
+  [200] code
+  [200] prediction
+  [200] fix_bug
+  [200] knowledge_check
+
+=== Lesson 961: Best practices обработки ошибок ===
+  [200] text
+  [200] semantic_diff
+  [200] fix_bug
+  [200] code
+  [200] transfer_test
+  [200] checkpoint
+
+Done! All lessons filled.

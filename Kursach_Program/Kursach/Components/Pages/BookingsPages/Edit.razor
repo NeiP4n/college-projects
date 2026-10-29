@@ -1,0 +1,104 @@
+﻿@page "/bookings/edit"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Редактировать</PageTitle>
+
+<h1>Редактировать</h1>
+
+<h2>Бронирования</h2>
+<hr />
+@if (Bookings is null)
+{
+    <p><em>Загрузка...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Bookings" OnValidSubmit="UpdateBookings" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="Bookings.Id" value="@Bookings.Id" />
+                <div class="mb-3">
+                    <label for="tourid" class="form-label">Id тура:</label>
+                    <InputNumber id="tourid" @bind-Value="Bookings.TourId" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Bookings.TourId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="clientid" class="form-label">Id клиента:</label>
+                    <InputNumber id="clientid" @bind-Value="Bookings.ClientId" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Bookings.ClientId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="bookingdate" class="form-label">Дата бронирования:</label>
+                    <InputDate id="bookingdate" @bind-Value="Bookings.BookingDate" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Bookings.BookingDate" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="status" class="form-label">Статус:</label>
+                    <InputText id="status" @bind-Value="Bookings.Status" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Bookings.Status" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/bookings">Назад к списку</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Bookings? Bookings { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Bookings ??= await context.Bookings.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Bookings is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // Для защиты от атак по переполнению формы, разрешите привязку только тех свойств, которые вы хотите.
+    // Дополнительную информацию смотрите на https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateBookings()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Bookings!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!BookingsExists(Bookings!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/bookings");
+    }
+
+    private bool BookingsExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Bookings.Any(e => e.Id == id);
+    }
+}

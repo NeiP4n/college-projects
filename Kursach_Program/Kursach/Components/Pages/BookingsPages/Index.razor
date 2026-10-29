@@ -1,0 +1,72 @@
+﻿@page "/bookings"
+@using Kursach.Data
+@using Kursach.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+
+@implements IAsyncDisposable
+
+<PageTitle>Главная</PageTitle>
+
+<h1>Главная</h1>
+
+<p>
+    <a href="bookings/create">Создать новое</a>
+</p>
+
+<QuickGrid TItem="Bookings" Class="table" Items="bookings">
+    <!-- Изменим на полный путь для PropertyColumn из QuickGrid -->
+    <Microsoft.AspNetCore.Components.QuickGrid.PropertyColumn Property="booking => booking.TourId" Title="Тур ID" />
+    <Microsoft.AspNetCore.Components.QuickGrid.PropertyColumn Property="booking => booking.ClientId" Title="Клиент ID" />
+    <Microsoft.AspNetCore.Components.QuickGrid.PropertyColumn Property="booking => booking.BookingDate" Title="Дата бронирования" />
+
+    <!-- Статус бронирования с выпадающим списком -->
+    <TemplateColumn Title="Статус" Context="booking">
+        <select @bind="booking.Status">
+            <option value="Ожидает">Ожидает</option>
+            <option value="Подтвержден">Подтвержден</option>
+            <option value="Отменен">Отменен</option>
+        </select>
+    </TemplateColumn>
+
+    <!-- Действия с бронированием -->
+    <TemplateColumn Context="booking">
+        <a href="@($"bookings/edit?id={booking.Id}")">Редактировать</a> |
+        <a href="@($"bookings/details?id={booking.Id}")">Детали</a> |
+        <a href="@($"bookings/delete?id={booking.Id}")">Удалить</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<h4>Общая сумма подтвержденных туров</h4>
+<p>Общая сумма подтвержденных туров: @totalConfirmedAmount руб.</p>
+
+@code {
+    private IQueryable<Bookings> bookings = default!;  // Используем IQueryable вместо List
+    private decimal totalConfirmedAmount = 0;
+
+    private KursachContext? context;
+
+    // Метод для инициализации данных
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        bookings = context.Bookings.Include(b => b.Tour);  // Подключаем информацию о турах
+
+        // Суммируем цены туров для подтвержденных бронирований
+        totalConfirmedAmount = await context.Bookings
+            .Where(b => b.Status == "Подтвержден")  // Фильтруем только подтвержденные бронирования
+            .SumAsync(b => b.Tour.Price);  // Суммируем цены туров
+
+    }
+
+    // Метод для очистки
+    public async ValueTask DisposeAsync()
+    {
+        if (context != null)
+        {
+            await context.DisposeAsync();  // Освобождаем ресурсы контекста
+        }
+    }
+}

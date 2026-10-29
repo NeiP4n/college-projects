@@ -1,0 +1,68 @@
+﻿@page "/bookings/delete"
+@using Microsoft.EntityFrameworkCore
+@using Kursach.Models
+@inject IDbContextFactory<Kursach.Data.KursachContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Удалить</PageTitle>
+
+<h1>Удалить</h1>
+
+<p>Вы уверены, что хотите удалить эту запись?</p>
+<div>
+    <h2>Бронирования</h2>
+    <hr />
+    @if (bookings is null)
+    {
+        <p><em>Загрузка...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">TourId</dt>
+            <dd class="col-sm-10">@bookings.TourId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">ClientId</dt>
+            <dd class="col-sm-10">@bookings.ClientId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Дата бронирования</dt>
+            <dd class="col-sm-10">@bookings.BookingDate</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Статус</dt>
+            <dd class="col-sm-10">@bookings.Status</dd>
+        </dl>
+        <EditForm method="post" Model="bookings" OnValidSubmit="DeleteBookings" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(bookings is null)">Удалить</button> |
+            <a href="/bookings">Назад к списку</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Bookings? bookings;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        bookings = await context.Bookings.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (bookings is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteBookings()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Bookings.Remove(bookings!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/bookings");
+    }
+}

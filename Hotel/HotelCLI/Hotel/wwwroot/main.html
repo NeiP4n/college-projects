@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>ОТЕЛИ</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <div class="hero">
+    <div class="brand">
+      <span class="brand-name">ОТЕЛИ</span>
+    </div>
+    <div class="hero-eyebrow">Панель управления</div>
+    <h1 class="hero-title">Добро пожаловать</h1>
+    <div class="hero-subtitle">Выберите раздел, чтобы продолжить работу</div>
+  </div>
+  <div class="nav-grid">
+    <button class="nav-card" onclick="postToHost('navigate', { page: 'addguest' })">
+      <div class="nav-icon">&#128100;</div>
+      <div class="nav-eyebrow">Учёт гостей</div>
+      <div class="nav-title">Гости</div>
+    </button>
+    <button class="nav-card" onclick="postToHost('navigate', { page: 'booking' })">
+      <div class="nav-icon">&#128276;</div>
+      <div class="nav-eyebrow">Резервации</div>
+      <div class="nav-title">Бронирование номеров</div>
+    </button>
+    <button class="nav-card" onclick="postToHost('navigate', { page: 'service' })">
+      <div class="nav-icon">&#10024;</div>
+      <div class="nav-eyebrow">Сервис</div>
+      <div class="nav-title">Услуги</div>
+    </button>
+  </div>
+</div>
+<script src="bridge.js"></script>
+</body>
+</html>

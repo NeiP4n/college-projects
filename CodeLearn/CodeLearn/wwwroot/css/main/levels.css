@@ -1,0 +1,502 @@
+﻿
+.levels-main {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 760px;
+    height: 1280px;
+    transform: translate(-50%, -64%);
+    pointer-events: none;
+    z-index: 30000;
+}
+
+/*.levels-2 {
+    position: absolute;
+    left: 50%;
+    top: calc(50% - 1080px);
+    width: 660px;
+    height: 740px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 30000;
+}
+
+/* =====================================================
+   КАРТА УРОВНЕЙ
+===================================================== */
+
+.levels-map {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transform: scale(1);
+}
+
+.map-paths-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    shape-rendering: crispEdges;
+    z-index: 1;
+}
+
+.map-path {
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.2));
+}
+
+/* ── Анимации путей между модулями ── */
+@keyframes map-march {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -11; }
+}
+
+@keyframes map-arrow-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+
+@keyframes map-dot-pulse {
+  0%, 100% { opacity: 0.18; }
+  50%      { opacity: 0.7; }
+}
+
+/* Активная линия пути — марширующие муравьи */
+.map-path-line {
+  animation: map-march 0.7s steps(11) infinite;
+}
+
+/* Стрелки-шевроны */
+.map-path-arrow {
+  animation: map-arrow-pulse 1.4s steps(5) infinite;
+}
+
+/* Пульсирующая точка у следующего заблокированного модуля */
+.map-path-dot {
+  animation: map-dot-pulse 1.6s steps(6) infinite;
+}
+
+.map-path.is-active {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.34));
+}
+
+.map-path-line {
+    animation: map-march 0.7s steps(11) infinite;
+}
+
+.map-path-arrow {
+    animation: map-arrow-pulse 1.4s steps(5) infinite;
+}
+
+.map-path-dot {
+    animation: map-dot-pulse 1.6s steps(6) infinite;
+}
+
+.levels-bg {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 320px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* =====================================================
+   LEVEL ITEMS
+===================================================== */
+
+.level {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    color: var(--node-color, white);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    pointer-events: auto;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+/* Текстовый span под папкой скрываем — метка уже внутри .pixel-folder-label */
+a.level > span,
+.level > span {
+    display: none;
+}
+
+/* ── Pixel Folder Icon ── */
+.pixel-folder {
+    position: relative;
+    width: 100px;
+    height: 84px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+    cursor: pointer;
+    filter: drop-shadow(0 0 8px var(--node-color, rgba(255,255,255,0.6)));
+}
+
+.pixel-folder svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Заливки реагируют на --node-color через CSS-классы на rect-ах */
+.pixel-folder .f-tab    { fill: var(--node-color, #fff); }
+.pixel-folder .f-body   { fill: var(--node-color, #fff); opacity: 0.18; }
+.pixel-folder .f-edge   { fill: var(--node-color, #fff); opacity: 0.85; }
+.pixel-folder .f-shine  { fill: #fff; opacity: 0.15; }
+.pixel-folder .f-dark   { fill: #000; opacity: 0.55; }
+.pixel-folder .f-shadow { fill: #000; opacity: 0.35; }
+
+/* Метка названия поверх папки — строго по центру папки */
+.pixel-folder-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-family: var(--px);
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    color: #fff;
+    text-shadow:
+        0 0 10px var(--node-color, #fff),
+        2px  2px 0 #000, -2px  2px 0 #000,
+        2px -2px 0 #000, -2px -2px 0 #000,
+        0  2px 0 #000,  0 -2px 0 #000,
+        2px  0  0 #000, -2px  0  0 #000;
+    pointer-events: none;
+    line-height: 1;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.level,
+.levels-bg {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
+
+/* Ссылка-уровень — сбрасываем стиль <a> */
+a.level {
+    text-decoration: none;
+    color: white;
+}
+a.level:hover .pixel-folder {
+    filter: drop-shadow(0 0 14px var(--node-color, rgba(255,255,255,0.9))) drop-shadow(0 0 4px #fff);
+}
+a.level:hover .pixel-folder-label {
+    text-shadow:
+        0 0 14px var(--node-color, #fff), 0 0 4px #fff,
+        1px  1px 0 #000, -1px  1px 0 #000,
+        1px -1px 0 #000, -1px -1px 0 #000;
+}
+
+/* Заблокированный уровень */
+.level-locked {
+    opacity: 0.38;
+    cursor: default;
+    filter: grayscale(60%);
+}
+.level-lock-icon {
+    font-size: 12px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+/* Пустой узел пути (модуль ещё не создан) */
+.level-placeholder {
+    opacity: 0.18;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* ── Контрольная задача (challenge) ── */
+.level-challenge {
+    text-decoration: none;
+    color: white;
+}
+
+.pixel-challenge-icon {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+    cursor: pointer;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7))
+            drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pixel-challenge-icon svg {
+    width: 90px;
+    height: 90px;
+    overflow: visible;
+}
+
+/* SVG fill classes */
+.pixel-challenge-icon .ch-base  { fill: var(--node-color, #ffd700); }
+.pixel-challenge-icon .ch-body  { fill: var(--node-color, #ffd700); opacity: 0.80; }
+.pixel-challenge-icon .ch-dark  { fill: #000; opacity: 0.50; }
+.pixel-challenge-icon .ch-shine { fill: #fff; opacity: 0.20; }
+.pixel-challenge-icon .ch-star  { fill: #fff; opacity: 0.90; }
+.pixel-challenge-icon .ch-glow  { fill: #fff; opacity: 0.30; }
+
+/* Метка названия под иконкой */
+.pixel-challenge-label {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 4px;
+    white-space: nowrap;
+    font-family: var(--px);
+    font-size: var(--label-size, 9px);
+    letter-spacing: 0.05em;
+    color: #fff;
+    text-shadow:
+        0 0 10px var(--node-color, #ffd700),
+        2px  2px 0 #000, -2px  2px 0 #000,
+        2px -2px 0 #000, -2px -2px 0 #000,
+        0  2px 0 #000,  0 -2px 0 #000,
+        2px  0  0 #000, -2px  0  0 #000;
+    pointer-events: none;
+    line-height: 1;
+    z-index: 10;
+}
+
+/* Бейдж «ИСПЫТАНИЕ» */
+.pixel-challenge-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--node-color, #ffd700);
+    color: #000;
+    font-family: var(--px);
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 2px 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 11;
+}
+
+/* Hover для активного испытания */
+a.level-challenge:hover .pixel-challenge-icon {
+    filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1))
+            drop-shadow(0 0 6px #fff);
+}
+
+/* Заблокированный вариант — тусклее */
+.pixel-challenge-icon--locked {
+    filter: drop-shadow(0 0 5px rgba(120, 100, 0, 0.4));
+}
+.pixel-challenge-icon--locked .ch-base,
+.pixel-challenge-icon--locked .ch-body { opacity: 0.45; }
+
+/* pulse-анимация кубка (лёгкое мерцание) */
+@keyframes challenge-glow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(255,215,0,0.7)) drop-shadow(0 0 4px rgba(255,215,0,0.4)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(255,215,0,1))   drop-shadow(0 0 8px rgba(255,200,0,0.7)); }
+}
+a.level-challenge .pixel-challenge-icon {
+    animation: challenge-glow 2.5s steps(8) infinite;
+}
+
+@keyframes map-march {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: -11;
+    }
+}
+
+@keyframes map-arrow-pulse {
+    0%, 100% {
+        opacity: 0.5;
+        transform: translateX(-1px);
+    }
+    45% {
+        opacity: 1;
+        transform: translateX(2px);
+    }
+}
+
+@keyframes map-dot-pulse {
+    0%, 100% {
+        r: 4;
+        opacity: 0.45;
+    }
+    50% {
+        r: 10;
+        opacity: 1;
+    }
+}
+
+/* Модуль 1 */
+
+.l1 {
+    top: 80%;
+    left: 12%;
+}
+
+.l2 {
+    top: 73%;
+    left: 46%;
+}
+
+.l3 {
+    top: 66%;
+    left: 54%;
+}
+
+.l4 {
+    top: 59%;
+    left: 61%;
+}
+
+.l5 {
+    top: 52%;
+    left: 62%;
+}
+
+.l6 {
+    top: 45%;
+    left: 54%;
+}
+
+.l7 {
+    top: 38%;
+    left: 46%;
+}
+
+.l8 {
+    top: 31%;
+    left: 42%;
+}
+
+.l9 {
+    top: 24%;
+    left: 43%;
+}
+
+/* Уровень 10 */
+
+.l10 {
+    top: 15%;
+    left: 46%;
+}
+
+.l10 img {
+    transform: scale(3.2);
+}
+
+.l10 span {
+    position: relative;
+    left: 12%;
+    font-size: 15px;
+}
+
+/* Модуль 2 */
+
+/* ── Значок завершённого модуля ── */
+.folder-done-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    width: 36px;
+    height: 30px;
+    z-index: 20;
+    pointer-events: none;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 6px #00e676) drop-shadow(0 0 2px #000);
+    animation: done-badge-pulse 2s steps(6) infinite;
+}
+.folder-done-badge svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+@keyframes done-badge-pulse {
+    0%, 100% { filter: drop-shadow(0 0 6px #00e676) drop-shadow(0 0 2px #000); }
+    50%       { filter: drop-shadow(0 0 14px #69f0ae) drop-shadow(0 0 4px #000); }
+}
+
+/* ═══════════ Состояния модулей (прогрессия) ═══════════ */
+
+/* Пиксельный замок на закрытом модуле */
+.folder-lock-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    width: 26px;
+    height: 30px;
+    z-index: 18;
+    pointer-events: none;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 3px #000);
+}
+.folder-lock-badge svg { width: 100%; height: 100%; overflow: visible; }
+
+/* «Следующий» модуль: тряска + свечение цветом модуля + лёгкий пульс */
+@keyframes lvl-next {
+    0%, 100% { transform: translate(0, 0) scale(1);    filter: drop-shadow(0 0 6px var(--node-color, #fff)); }
+    8%       { transform: translate(-2px, 1px) scale(1.05); }
+    16%      { transform: translate(2px, -1px) scale(1.07); filter: drop-shadow(0 0 18px var(--node-color, #fff)) drop-shadow(0 0 6px #fff); }
+    24%      { transform: translate(-2px, 0) scale(1.07); }
+    32%      { transform: translate(2px, 1px) scale(1.05); }
+    40%      { transform: translate(0, 0) scale(1.02);  filter: drop-shadow(0 0 12px var(--node-color, #fff)); }
+}
+.level.level--next .pixel-folder,
+.level.level--next .pixel-challenge-icon {
+    animation: lvl-next 1.8s ease-in-out infinite;
+    transform-origin: center center;
+}
+
+/* Пройденный модуль — чуть темнее */
+.level.level--done:not(.level--shatter) .pixel-folder,
+.level.level--done:not(.level--shatter) .pixel-challenge-icon {
+    filter: brightness(0.5) saturate(0.7) !important;
+    opacity: 0.82;
+    animation: none !important;
+}
+
+/* Анимация «раскола» при только что завершённом (один раз) */
+@keyframes lvl-shatter {
+    0%   { transform: scale(1);                       filter: brightness(1.7) drop-shadow(0 0 12px var(--node-color, #fff)); }
+    20%  { transform: scale(1.14) rotate(-2deg);      filter: brightness(1.5) drop-shadow(0 0 18px var(--node-color, #fff)); }
+    45%  { transform: scale(1.05) skewX(5deg) rotate(2deg);  filter: brightness(1.2); }
+    70%  { transform: scale(0.95) skewX(-4deg) rotate(-2deg); filter: brightness(0.8); }
+    100% { transform: scale(1) rotate(0);             filter: brightness(0.5) saturate(0.7); opacity: 0.82; }
+}
+.level.level--shatter .pixel-folder,
+.level.level--shatter .pixel-challenge-icon {
+    animation: lvl-shatter 0.75s ease-out forwards !important;
+    transform-origin: center center;
+}
+
+/* Осколки */
+.shatter-piece {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 6px;
+    height: 6px;
+    z-index: 25;
+    pointer-events: none;
+    image-rendering: pixelated;
+}
